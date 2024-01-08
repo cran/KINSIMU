@@ -1,0 +1,1240 @@
+%\VignetteIndexEntry{Instruction_of_functions_of_R_oackage_KINSIMU}
+
+\documentclass[12pt]{article} % for all articles
+\usepackage{url,lineno,microtype,bbm,amsmath,cases,multirow,colortbl,tabularx,listings,xcolor,threeparttable,multirow,arydshln,array,times,longtable,makecell,enumitem,Sweave}
+
+
+\setenumerate[1]{itemsep=0pt,partopsep=0pt,parsep=\parskip,topsep=0pt}
+\setitemize[1]{itemsep=0pt,partopsep=0pt,parsep=\parskip,topsep=0pt}
+\setdescription{itemsep=0pt,partopsep=0pt,parsep=\parskip,topsep=0pt}
+\usepackage{minitoc}
+\usepackage[T1]{fontenc}
+\usepackage[italic]{mathastext}
+\lstset{
+basicstyle=\scriptsize,
+commentstyle= \sffamily\itshape\color{blue}, 
+numbers=left, 
+numberstyle= \ttfamily, 
+flexiblecolumns, 
+rulesepcolor= \color{red!20!green!20!blue!20} ,
+backgroundcolor = \color{gray!20},
+%	keywordstyle= \bfseries,
+framexleftmargin=2em,
+showstringspaces=false,
+language=R,
+frame=single,
+breaklines=true,
+tabsize=2
+} 
+\usepackage[lined,linesnumbered,ruled]{algorithm2e}
+\usepackage[singlespacing,nodisplayskipstretch]{setspace}
+\usepackage[figuresright]{rotating}
+\usepackage[hidelinks]{hyperref}
+\setlength\textwidth{42pc}
+\usepackage[margin={3.5pc,3.5pc}]{geometry}
+
+% Leave a blank line between paragraphs instead of using \\
+\title{Instruction of functions of R package \textit{KINSIMU}}
+\author{Guanju Ma, Shujin Li}
+\date{\today}
+
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\dosecttoc[e]
+\maketitle
+\setcounter{tocdepth}{3}
+\tableofcontents
+\renewcommand{\thefigure}{S\arabic{figure}}  
+\renewcommand{\thetable}{S\arabic{table}} 
+\renewcommand{\theequation}{S\arabic{equation}} 
+
+\clearpage
+
+
+\section{Brief introduction}
+
+The R package \textit{KINSIMU} has been developed using the unified formulae for the assessment and simulation of specific panels in kinship analysis, we hereby present instructions of several functions in the package.
+
+
+\section{Install and library the \textit{KINSIMU} package}
+The authors have uploaded the package to CRAN, making it able to be install directly with the following code:
+
+\begin{lstlisting}
+	install.package("KINSIMU")
+\end{lstlisting}
+
+Otherwise, the repository file "KINSIMU.0.1.1.tar.gz" is provided as File S2 of this study, and the package can be installed using the subsequent code after downloading it:
+
+\begin{lstlisting}
+	utils:::menuInstallLocal()
+\end{lstlisting}
+
+
+After installing the package, it can be loaded with the following code:
+
+\begin{lstlisting}
+	library("KINSIMU")
+\end{lstlisting}
+
+\section{Functions in the package}
+
+In this section, we will introduce the functions contained in the \textit{KINSIMU} package. Each function introduction will consist of four parts: (i) input arguments; (ii) output values; (iii) detailed description of the function's process, presented as algorithms. Code and methods for key steps will be labeled with $\dagger$, $\ddagger$, $\#$ and $\S$ in the algorithms, followed by detailed explanations. (iv) Examples of the function.
+
+There would be several common abbreviations in this section:
+
+\textit{\textbf{nl}}: number of loci in the panel, used in \nameref{4.3.1}, \nameref{4.3.10} and \nameref{4.3.9} functions;
+
+\textit{\textbf{ss}}: sample size to be simulated in \nameref{4.3.2},\nameref{4.3.3} and \nameref{4.3.10} functions; 
+
+\textit{\textbf{n\textsubscript{a}}}: number of alleles on a locus;
+
+\textit{\textbf{np}}: number of individual to be simulated in \nameref{4.3.3} function;
+
+\textcolor{red}{\textbf{stop}} in algorithms: Terminate the function without executing any subsequent code.
+
+\subsection{`\textit{EvaluatePanel}()'}
+\label{4.3.1}
+
+The function would transfer the input allele frequency data (in a .csv file or a data frame) into form usable for other functions and then calculate several population parameters based on the frequency data for each marker.
+\paragraph{Input arguments}
+4 input arguments are needed for the function, one of which is optional.
+
+
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{type}: The type of input data, there are 2 acceptable type of input for the argument:
+	\begin{itemize}
+		\item `\textit{csv}': a .csv file containing the allele frequency data in the panel. In such a file, cell `A1` should be `allele' and the other cells in the first row should contain the names of each marker. The names of all detected allele types in the panel should be listed in the first column and the corresponding frequency data on each marker should be contained in the cells according to marker names and allele names. If the input argument `\textbf{raremode}' is set as `\textit{ISFG}' or `\textit{1/2N}' and the input argument `\textbf{Nind}' is set as `\textit{lastrow}', the sample size in the population survey should be listed in the last row per marker; 
+		\item `\textit{df}': a data frame with the similar structure with the aforementioned .csv file, except that the word `allele' and marker names should be the column names;
+	\end{itemize}	
+	\item \textbf{strpath}: The pathway of the .csv file or the name of the data frame, according to the set of argument \textbf{type}.
+	\item \textbf{raremode}: The mode of calculation method of rare allele frequency at each locus. There are 3 acceptable type of input for the argument
+	\begin{itemize}
+		\item `\textit{ISFG}': The default input, rare allele frequency data is calculated based on the population survey results, i.e., $\left.p_{rare}=\left(n_a+1\right)\middle/\left(2\mathcal{N}+1\right)\right.$ if $n_a$ and $\mathcal{N}$ denote the number of allele types detected and the sample size, respectively;
+		\item `\textit{MAF}': The minimum allele frequency is taken as the rare allele frequency;
+		\item \textit{`1/2N'}: The minimum allele frequency a population survey with a sample size $\mathcal{N}$ can provide is taken as the rare allele frequency;
+		\item \textit{<numeric>}: A number set as the rare allele frequency, the function would report error if the number \textgreater{} 1;
+	\end{itemize}
+	\item \textbf{Nind}: (Optional) Mode of sample size data presentation, only need when \textbf{raremode} is set as `\textit{ISFG}' or `1/2N'. There are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item `\textit{lastrow}': The sample size data is given in the last row of the .csv file;
+		\item \textit{<integer>}: An integer number can be input and taken as the sample size on all markers.
+	\end{itemize} 
+	\item \textbf{Th}: The threshold for the difference in allele frequency sum at a locus with 1, to detect data error from rounding error when the frequency sum does not equal 1. Loci exceeding this threshold will be excluded from the calculation.
+\end{itemize}	
+\hrule
+
+
+\paragraph{Output values}
+A list of 4 vectors would be output:
+
+\hrule
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{afmatrix}: A list of \textit{nl} data frames that hold information of the allele frequencyfor each marker. Each data frame is structured with a single column and a row count of $n_a$. The row names of the data frames list the names of the alleles.
+	\item \textbf{rare}: A data frame containing rare allele frequencies on each marker;
+	\item \textbf{indicators}: A data frame containing forensic parameters for each marker, which would be detailed introduced;
+	\item \textbf{panelpara}: A data frame containing population parameters for the whole panel, with the form of log\textsubscript{10}(1-paramter) to avoid displaying the parameters as 1 because they are too close to 1.		
+\end{itemize}
+\hrule	
+
+\paragraph{Detailed description} 
+Upon performing an analysis of a specified .csv file or data frame, this function extracts allele frequency data at different loci and evaluate the population parameters for the specific kit using the provided data. The complete procedure is detailed in Algorithm \ref{Al1}.
+
+\begin{algorithm}[H]
+	\small
+	\caption{EvaluatePanel()}
+	\label{Al1}
+	Input basic data (\textit{allelefreq}) from a .csv file or a data frame pointed by argument `\textit{strpath}', according to `\textit{type}' set\;
+	Conduct formal checks on basic data, \textcolor{red}{\textbf{stop}} if any error exists\;
+	\uIf{\textbf{Nind}='lastrow'}{
+		Take the last row of \textit{allelefreq} data frame as \textit{n\_of\_indi} data frame\;
+		Take the rest rows as \textit{allelefreq} data frame\;
+	}
+	\ElseIf{\textbf{Nind}=<integer>}{
+		Repeat the Nind value as \textit{n\_of\_indi} data frame\;
+	}
+	Delete loci for which the difference between the sum of allele frequencies and 1 exceeds \textbf{Th}\;
+	Calculate population parameters for each locus and generate the \textbf{indicators} data frame; \tcc*[f]{$\dagger$}\\  
+	Calculate combined population parameters for the whole panel and generate the \textbf{panelpara} data fram\;
+	Extract/calculate rare frequency and generate the \textbf{rare} data frame according to \textbf{raremode}; \tcc*[f]{$\ddagger$}\\
+	Divide the \textit{allelefreq} data frame into \textit{nl} single data frames and delete rows with 0 values for each\;
+	Integrate the \textit{nl} data frames into a list named \textbf{afmatrix}\;
+	Integrate the four output vectors into a list \textbf{Result} and output the list.
+\end{algorithm}
+
+$\dagger$ The \textbf{indicators} data frame contains 12 population parameters computed for each locus:
+
+
+\begin{table}[ht]
+	\centering
+	\caption{Parameters presented in \textbf{indicator} data frame}
+	\begin{footnotesize}
+		\begin{threeparttable}
+			\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llll}
+				\hline
+				No. & Name  & Note                                                                               & Equation                                                                       \\ \hline
+				1   & $n_a$ & The number of allele types on a marker                                     & --                                                                             \\
+				2   & $H_u$ & The unadjusted heterozygosity                                                      & $H_u=1-S_2$\tnote{$\ast$}                                                                    \\
+				3   & $H_a$ & The adjusted heterozygosity                                                        & $H_a=H_u\times \frac{n_a}{n_a-1}$                                             \\
+				4   & MAF   & The minimum allele frequency                                                       & --                                                                             \\
+				5   & PM    & The probability of randomly match                                                  & $PM=2S_2^2-S_4$                                                                \\
+				6   & DP    & The discrimination power                                                           & $DP=1-PM$                                                                      \\
+				7   & PED   & Probability of exclusion (PE) in duo paternity cases                               & $PED=1-4S_2+4S_3+2S_2^2$                                                       \\
+				8   & PET   & PE in trio paternity cases                                                         & $PET=1-2S_2+S_3+2S_4-3S_5-2S_2^2+3S_2S_3$                                      \\
+				9   & PEDD  & PE in double doubt parentage cases                                                 & $PEDD=1+4S_4-4S_5-3S_6-8S_2^2+2S_3^2+8S_2S_3$                                  \\
+				10  & RGE   & Mean Power of Random Grandparents Excluded\tnote{$\ast\ast$}                           & $\begin{aligned}
+					RGE= & 1-4S_2+6S_3-17S_5+28S_6-15S_7-4S_2^2+18S_2S_3 \\
+					& -16S_2S_4+5S_2S_5-12S_3^2+10S_3S_4
+				\end{aligned}$                                                                 \\
+				11  & RGENM & RGE without the assistant with the mother                                          & $\begin{aligned}
+					RGENM=&1-8S_2+16S_3-26S_4+30S_5-15S_6+12S_2^2\\&-24S_2S_3+8S_2S_4+6S_3^2
+				\end{aligned}$                                                                 \\
+				12  & PIC   & polymorphism information content                                                   & $PIC=1-S_2-S_2^2+S_4$                                                          \\ \hline
+			\end{tabular*}
+			\begin{tablenotes}
+				\item[$\ast$] $S_x$ represents the sum of all frequencies on a locus to the power of $x$, i.e., $S_x=\sum_i p_i^x$;
+				\item[$\ast\ast$] RGE is calculated for grand-parentage identification involving four participants: a child, the child's biological mother and a couple of individuals who are alleged as the child's grandparents, i.e., the parents of the child's father.
+			\end{tablenotes}
+		\end{threeparttable}
+	\end{footnotesize}
+\end{table}
+
+~
+
+~
+
+~
+
+$\ddagger$ The data frame \textbf{panelpara} includes 6 types of total (T) or cumulative (C) population parameters are calculated for the whole panel: TDP, CPED, CPET, CPEDD, CRGE, CRGENM. The calculation method of these parameters are similar, if set specific parameter on the ith marker as $\mathcal{P}_{i}$, the total parameter $\mathcal{TP}$, then
+
+\begin{equation}
+	\mathcal{TP}=1-\prod_{i}\mathcal{P}_{i}
+\end{equation} 
+\paragraph{Examples}
+Two examples are given based on a .csv file generated by \nameref{4.3.11} function. The two examples would result in a same output, which is included in the package as data ``\nameref{4.4.1}''.
+
+\begin{lstlisting}
+	#A .csv file can be output with FortytwoSTR data
+	path<-tempdir()
+	outputCSV(FortytwoSTR,file.path(path,'data.csv'))
+	#Example 1, 'df' type, by read the csv file into a data frame
+	allele_data <- read.csv(file = file.path(path,'data.csv'), header = TRUE)
+	STR42<- EvaluatePanel(type = 'df',strpath = allele_data,raremode = "ISFG",Nind = "lastrow")
+	#Example 2, 'csv' type, the same evaluation can be done by directly input the csv file
+	STR42_2 <- EvaluatePanel(type = 'csv',strpath = file.path(path,'data.csv'),
+	raremode = "ISFG",Nind = "lastrow")
+	#The data "FortytwoSTR" is generated with these codes.
+\end{lstlisting}
+
+\subsection{`\textit{pairsimu}()'}
+\label{4.3.2}
+The function would generate genotype combinations of multiple individual pairs with specific relationships on an autosomal marker, ignoring mutaion.
+
+\paragraph{Input arguments}
+4 input arguments are needed for the function:
+
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{af}: A data frame of 1 column containing the allele frequency data on the marker with the allele names being the row names and `Freq' as column name, which can be generated with function `\nameref{4.3.1}' (e.g., `af=FortytwoSTR$\$$afmatrix[[1]]') or input with function `\textit{data.frame}(Freq=c($\cdots$))' directly;
+	\item \textbf{ss}: The sample size of the simulation;
+	\item \textbf{delta}: The distribution of IBD or Jacquard coefficient of the target relationship, which should be input as a single row of data with function `$c()$', the coefficients should be input in order of `$\kappa_0\to\kappa_2$' or `$\Delta_1\to\Delta_9$';
+	\item \textbf{allelename}: The output format setting, There are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item \textit{FALSE}: The default set, to output the row number of the alleles in the \textbf{af} matrix;
+		\item \textit{TRUE}: To output allele names, i.e., the row names in the \textbf{af} matrix.
+	\end{itemize}
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of 4 columns and ss rows would be output, which denote the genotype combinations of each pair simulated, the first 2 columns denote individual A and the other 2 individual B.
+
+
+\paragraph{Detailed description}
+A directly generating strategy is applied in this function:
+
+\begin{algorithm}[H]
+	\small
+	\caption{pairsimu()}
+	Construct the result data frame in the aforementioned form\;
+	\uIf{The length of \textbf{delta} is 3 (non-inbred cases)}{
+		Randomly generate the genotypes (in form of allele position) of \textbf{ss} individual As; \tcc*[f]{$\dagger$}\\
+		Generate \textbf{ss} random numbers 1$\sim$4 according to delta set; \tcc*[f]{$\ddagger$}\\
+		Generate genotypes of \textbf{ss} indivdiual Bs;
+	}
+	\uElseIf{The length of \textbf{delta} is 9 (inbred cases)}{
+		Randomly generate the first alleles (in form of allele position) of \textbf{ss} individual As; \tcc*[f]{$\dagger$}\\
+		Generate \textbf{ss} random numbers 1$\sim$9 according to delta set; \tcc*[f]{$\#$}\\
+		Generate the second alleles of \textbf{ss} individual As and genotypes of \textbf{ss} indivdiual Bs\;
+	}
+	\Else{Report the error of delta setting and \textcolor{red}{\textbf{stop}}\;}
+	\If{\textbf{allelename}=`TRUE'}{
+		Translate the allele positions into allele names; \tcc*[f]{$\S$}
+	}
+	Output the result data frame.
+\end{algorithm}
+
+$\dagger$ These alleles can be randomly generated with `\textit{sample}()' function, take the 1st allele of individual A as example:
+\begin{lstlisting}
+	pop<-1:nrow(af)
+	results$A1<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)
+\end{lstlisting}
+
+
+$\ddagger$ For outbred relationships with $\kappa=\left\{\kappa_0,\kappa_1,\kappa_2\right\}$, there are 4 types of possible IBD genotype of individual B, (i) $x_Iy_I$, (ii) $b_Ix_I$, (iii) $a_Ix_I$, and (iv) $a_Ib_I$, the corresponding probabilities of which are $\kappa_0$, $\left.\kappa_1\middle/2\right.$, $\left.\kappa_1\middle/2\right.$ or $\kappa_2$, respectively. Among these IBD genotypes, $b_Ix_I$ can be written as $x_Ib_I$, which would not affect any of the following calculations. Thus, the 1st allele of individual B would be IBD to the 1st of individual A if situation (iii) or (iv) happens, while his/her 2nd allele would be IBD to the 2nd of individual A if situation (ii) or (iv) happens. In other words, the genotypes of individual Bs can be generated according to `\textbf{delta}' value with the following code:
+
+\begin{lstlisting}
+	# Randomly generate individual A's alleles
+	results$A1<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)
+	results$A2<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)
+	# Generate random numbers (RN), with value of 1:4 according to delta distribution
+	# Each number stands for a situation of individual B's IBD genotype
+	RN<-sample(x=1:4,size=ss,replace=TRUE,prob=c(delta[1],delta[2]/2,delta[2]/2,delta[3]))
+	# T1: numbers lager than 2 in RNs, i.e., situation (iii) or (iv) happens
+	T1<-as.double(RN>2)
+	# T2: even numbers in RNs, i.e., situation (ii) or (iv) happens
+	T2<-as.double(RN%%2==0)
+	# Transfer situations into individual B's alleles
+	results$B1<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)*(1-T1)+results$A1*T1
+	results$B2<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)*(1-T2)+results$A2*T2
+\end{lstlisting}
+
+$\#$ For inbred relationships, the two alleles of individual A may be IBD to each other, i.e., only the first alleles of each individual A can be generated randomly based on the allele frequency data and other 3 alleles should be generated according to the $\Delta$ distribution, which is more complex compared to outbred cases. The corresponding code can be written as follows:
+\begin{lstlisting}
+	results$A1<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)
+	RN<-sample(x=1:11,size=ss,replace=TRUE,prob=c(delta[1],delta[2],delta[3],delta[4],delta[5]/2,delta[5]/2,delta[6],delta[7],delta[8]/2,delta[8]/2,delta[9]))
+	T0<-as.double(RN>4)
+	T1A<-as.double(RN%in%c(1,3,5,8,9))
+	T1B<-as.double(RN==6)
+	T2A<-as.double(RN%in%c(1,8,10))
+	T2B<-as.double(RN%in%c(2,5,6,7))
+	results$A2<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)*T0+results$A1*(1-T0)
+	results$B1<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)*(1-T1A-T1B)+results$A1*T1A+results$A2*T1B
+	results$B2<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)*(1-T2A-T2B)+results$A2*T2A+results$B1*T2B
+\end{lstlisting}
+
+$\S$ If argument \textbf{allelename} is set as TRUE, the allele position can be translated to allele names with the following codes:
+
+\begin{lstlisting}
+	an<-as.data.frame(as.numeric(row.names(af)))
+	results$A1<-an[results$A1,]
+	results$A2<-an[results$A2,]
+	results$B1<-an[results$B1,]
+	results$B2<-an[results$B2,]
+\end{lstlisting}
+
+\paragraph{Example} Three examples are given, simulating 3 types of individual pairs based on the 1st STR in the 42 ones in `\nameref{4.4.1}' data set, setting ss=10,000: 
+
+\begin{lstlisting}
+	# Extract allele frequency on the locus
+	af = FortytwoSTR$afmatrix[[1]]
+	# simulating 10,000 unrelated pairs
+	a<-pairsimu(af = af,ss = 10000,delta = c(1,0,0),allelename = FALSE)
+	# simulating 10,000 parent-child pairs
+	b<-pairsimu(af = af,ss = 10000,delta = c(0,1,0),allelename = FALSE)
+	# simulating 10,000 full-sibling pairs
+	c<-pairsimu(af = af,ss = 10000,delta = c(0.25,0.5,0.25),allelename = FALSE)
+\end{lstlisting}
+
+\subsection{`\textit{pedisimu}()'}
+\label{4.3.3}
+The function would genotype combinations of multiple pedigrees with specific relationships on an autosomal marker.
+
+\paragraph{Input arguments}
+7 input arguments are needed for the function, 2 of which are optional.
+
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{af}: A data frame of similar to \textbf{af} in \nameref{4.3.2} function;
+	\item \textbf{ss}: The sample size of the simulation;
+	\item \textbf{pedi}: a data frame containing the pedigree structure information, with 3 columns (``Person'', ``Father'' and ``Mother'') and \textit{np} rows;
+	\item \textbf{random\_name}: The name of random individual, with a default of "RI";
+	\item \textbf{muf}: (Optional) father-child mutation rate, with default set of 0, only need if \textbf{allelename} set as \textit{TRUE};
+	\item \textbf{mum}: (Optional) mother-child mutation rate, with default set of 0, only need if \textbf{allelename} set as \textit{TRUE};
+	\item \textbf{allelename}: Similar to \textbf{allelename} in \nameref{4.3.2} function.
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of ss rows and 2\texttimes{}\textit{np} columns. Each pair of columns contains alleles of an individual, with the individuals sorted in the same order as in the \textbf{pedi} data frame.
+
+
+\paragraph{Detailed description}
+Genotype data is generated sequentially according to Algorithm \ref{Al2}:
+
+\begin{algorithm}[H]
+	\begin{small}
+		\caption{pedisimu()}
+		\label{Al2}
+		Conduct formal checks on the data frame \textbf{pedi}, and \textcolor{red}{\textbf{stop}} if any error exists\;
+		Extract \textit{np} as the row number of \textbf{pedi} data frame\;
+		Construct result data frame with \textbf{ss} rows and 2\texttimes{}\textit{np} columns\;
+		\For{i in 1:\textit{np}}{
+			\eIf{There is no individual in ``Person'' column named identical as the father of ith individual}{
+				Randomly generate the ith individual's paternal allele according to \textbf{allelename} set; \tcc*[f]{$\dagger$}\\
+			}{
+				Set \textit{f}=the row number of the ith individual's father in ``Person'' column\;
+				\If{f$\geq$i}{
+					Report error ``Father of the ith individual should be defined before him/her'' and \textcolor{red}{\textbf{stop}}\;
+				}
+				Generate the ith individual's paternal allele from the fth individual's genotype; \tcc*[f]{$\ddagger$}\\
+				\If{\textbf{muf}\textgreater{}0}{
+					Randomly change the alleles according to muf set; \tcc*[f]{\#}					
+				}
+			}			
+			Generate the maternal allele of the ith individual with similar process considering \textbf{mum} setting;
+		}
+	\end{small}		
+\end{algorithm}
+
+$\dagger$ Alleles without parent setting can be generated with `\textit{sample}()' function, according to the \textbf{allelename} set. Take the paternal allele of the ith individual as example:
+\begin{lstlisting}
+	if (isTRUE(allelename)) {results[,2*i-1]<-sample(x=as.numeric(row.names(af)),size=ss,replace=TRUE,prob=af$Freq)
+	} else {pop<-1:nrow(af)
+		results[,2*i-1]<-sample(x=pop,size=ss,replace=TRUE,prob=af$Freq)
+	}
+\end{lstlisting}
+
+
+$\ddagger$ If father or mother of the ith individual is set, the corresponding allele can be generated according to the genetic law, i.e., the two alleles of the father or mother have equivalent probabilities to be inherited. Take the paternal inheritance of the offspring as example:
+
+\begin{lstlisting}
+	RN<-sample(x=c(0,1),size=ss,replace=TRUE,prob=c(0.5,0.5))
+	results[,2*i-1]<-results[,2*f-1]*RN+results[,2*f]*(1-RN)
+\end{lstlisting}
+
+$\#$ To perform mutation, the original alleles of the offspring would be added by a random number within set \{-1,0,1\} according to the mutation rate:
+
+\begin{lstlisting}
+	if (muf>0) {results[,2*i-1]=results[,2*i-1]+sample(x=c(-1,0,1),size=ss,replace=TRUE,prob=c(muf/2,1-muf,muf/2))}
+\end{lstlisting}
+
+\paragraph{Example} An example is given to simulate 10,000 first cousin pedigree (as listed in data `\textbf{pediexample}' included in the package), based on the first locus in data `\nameref{4.4.1}':
+
+\begin{lstlisting}
+	pedi<-pediexample
+	af<-FortytwoSTR$afmatrix[[1]]
+	pedisimu(af=af,ss=10000,pedi=pedi)
+\end{lstlisting}
+
+
+\subsection{`\textit{LRparas}()'}
+\label{4.3.4}
+The function would count or calculate parameters used in the calculation of different pairwise LR.
+
+
+\paragraph{Input arguments} 7 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{AB}: A data frame of 4 columns containing the genetic information of the participants, each row denote a single pair, and the 4 columns containing alleles $a$, $b$, $c$ and $d$, respectively. The data frame can be generated with functions `\nameref{4.3.2}' or `\nameref{4.3.3}', or can be directly input with function `\textit{data.frame}()';
+	\item \textbf{af}: Allele frequency data, There are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item \textit{NULL}: The default set;
+		\item \textit{<data frame>}: input a data frame similar to \textbf{af} in \nameref{4.3.2} function;
+	\end{itemize}
+	\item \textbf{rare}: Rare frequency data, there are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item \textit{NULL}: The default set;
+		\item \textit{<numeric>}: A number of rare frequency;
+	\end{itemize}
+	\item \textbf{stepwisePI}: Whether stepwise mutation model should be considered when calculating paternity index, there are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item \textit{FALSE}: The default set, take mutation rate as PI if no allele is shared between the two individuals;
+		\item \textit{TRUE}: Calculate PI considering stepwise mutation model in paternity tests;
+	\end{itemize}
+	\item \textbf{bred}: Whether $J_1\sim J_6$ should be calculated, there are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item \textit{FALSE}: The default set, output 2 ratios: (i)  $\left.\Pr\left(E\middle| J_8\right)\middle/\Pr\left(E\middle| J_9\right)\right.$, i.e., paternity index which is labeled as `\textit{PInomu}' in the output data frame; (ii) $\left.\Pr\left(E\middle| J_7\right)\middle/\Pr\left(E\middle| J_9\right)\right.$, i.e., likelihood ratio in personal identification which is labeled as `\textit{LRid}' in the output data frame;
+		\item \textit{TRUE}: If so, the other 6 ratios in Eq.~(15) would be output, labeled as `\textit{FD1}' $\to$ `\textit{FD6}', i.e., factors of $\Delta_1\to\Delta_6$;
+	\end{itemize}
+	\item \textbf{mu}: The mutation rate if paternity index is calculated, with a default of 0.002;
+	\item \textbf{allelename}: The data type of \textbf{AB} data frame, there are 2 acceptable types of input for the argument:
+	\begin{itemize}
+		\item \textit{FALSE} To treat the values in \textbf{AB} data frame as row numbers in \textbf{af} data frame;
+		\item \textit{TRUE} To treat the values in \textbf{AB} data frame as allele names (row names) in \textbf{af} data frame. 
+	\end{itemize}
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of \textbf{ss} rows and multiple columns, containing the combined identity by state (CIBS) score, the 8 or 2 ratios needed in Eq.~(15) or Eq.~(16) in the main text, respectively, as well as PI considering mutation.
+
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al3}. It can be seen that all these parameters are calculated simultaneously, as a result, LR of the ss pairs can be calculated simultaneously on a single marker.
+
+\begin{algorithm}[H]
+	\small
+	\caption{LRparas()}
+	\label{Al3}
+	Conduct formal checks on the data frame \textbf{AB}, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Calculate $\mathbbm{1}_{ac}$, $\mathbbm{1}_{ad}$, $\mathbbm{1}_{bc}$ and $\mathbbm{1}_{bd}$ based on \textbf{AB} data frame; \tcc*[f]{$\dagger$}\\
+	Calculate IBS score and set as the first column of the output result data frame;\tcc*[f]{$\ddagger$}\\
+	\eIf{
+		(\textbf{af}=`\textit{NULL}') OR (\textbf{allelename}=`\textit{TRUE}' AND \textbf{rare}=1\textit{NULL}')
+	}{
+		\If{\textbf{stepwisePI} or \textbf{bred} is set as \textit{TRUE}}{
+			Report error ``Please input the frequency data'' and \textcolor{red}{\textbf{stop}}\;
+		}
+		Output the result data frame; \tcc*[f]{No frequency data for LR calculation}\\
+	}{
+		Extract $p_c$ and $p_d$;\tcc*[f]{\#}\\
+		Calculate LRid and PInomu (PI not considering mutation) as the 2nd and 3rd columns of the result data frame, according to Eq.~(16) in main text\;
+		\uIf{All values in PInomu column \textgreater{}0}{
+			Set PImu=PInomu as the 4th column of the result data frame\;
+		}
+		\uElseIf{\textbf{stepwisePI} is set as \textit{TRUE} \tcc*[f]{$\S$}}{
+			Calculate the 4 absolute differences between the two indivdiual's alleles (\textit{a}\textrightarrow\textit{c}, \textit{a}\textrightarrow\textit{d}, \textit{b}\textrightarrow\textit{c}, and \textit{b}\textrightarrow\textit{d}), transfer non-integer-step mutations into numbers larger than 10000\;
+			Choose the minimum in the 4 differences as the minimum mutation step (\textit{s})\;
+			Calculate $d_{Ac}$ and $d_{Ad}$ as the dosage of alleles that can mutate into \textit{c} and \textit{d} with \textit{s} steps\;
+			\uIf{\textit{s}=0}{
+				PImu=PInomu\;
+			}
+			\uElseIf{
+				\textit{s}>10000
+			}{
+				PImu=$\mu$, which is defined by input argument \textbf{mu}\;
+			}
+			\Else{
+				$PImu=\mu\times 10^{1-s} \times \left(\frac{d_{Ac}}{8p_c}+\frac{d_{Ad}}{8p_d}\right)$\;
+			}
+		}
+		\Else{
+			Calculate PImu, by taking \textbf{mu} as PI when no allele is shared between the two individuals\;
+		}
+		\If{\textbf{bred} is set as \textit{TRUE}}{
+			Extract $p_a$, calculate $\mathbbm{1}_{ab}$ and $\mathbbm{1}_{cd}$\;
+			Calculate the other 6 ratios in Eq.~(15) as the 5th$\sim$10th columns of the result data frame\;
+		}
+		Output the result data frame
+	}
+\end{algorithm}
+
+$\dagger$ The $\mathbbm{1}$ parameters can be calculated using `\textit{as.duoble}()' function, take $\mathbbm{1}_{ac}$ as example:
+\begin{lstlisting}
+	ac<-as.double(AB[,1]==AB[,3])
+\end{lstlisting}
+
+$\ddagger$ The IBS score is a parameter evaluating the similarity of two individual's genotypes. It equals to 2 if the genotypes are identical (i.e., $\mathbbm{1}_{ac}\mathbbm{1}_{bd}+\mathbbm{1}_{bc}\mathbbm{1}_{ad}>0$), to 0 if there is no allele sharing between them (i.e., $\mathbbm{1}_{ac}+\mathbbm{1}_{bd}+\mathbbm{1}_{bc}+\mathbbm{1}_{ad}=0$), and to 1 otherwise. Thus, the score can be calculated with following codes:
+
+\begin{lstlisting}
+	ibs=as.double(ac+ad+bc+bd>0)+as.double(ac*bd+ad*bc>0)
+\end{lstlisting}
+
+$\#$ The frequency value can be extracted from \textbf{af} data frame according to \textbf{allelename} setting, then, frequency of rare alleles should be replaced by \textbf{rare} value. Take $p_c$ as example:
+\begin{lstlisting}
+	if (isTRUE(allelename)) {pc<-af[as.character(AB[,3]),]} else {pc<-af[AB[,3],]}
+	pc[is.na(pc)]<-rare
+\end{lstlisting}
+
+$\S$ When using STR markers in parentage testing, the relatively high mutation rate of these markers leads to a greater likelihood that a true parent-child pair may not share any allele. In such cases, it is important to calculate the PI considering mutation in order to prevent the erroneous exclusion of parentage. Replication slippage is the primary cause of mutation for STR markers, and a model known as the ``stepwise mutation model'' has been developed, considering that the probability of mutating \textit{s}+1 steps as being one-tenth of the probability of mutating \textit{s} steps. Thus, the probability of allele \textit{x} mutated to allele {x+s} equal to $0.5\times \mu \times \left(\frac{1}{10}\right)^{s-1}$, where the first ``0.5'' denote the probability of mutating longer or shorter. And the calculation of PI considering mutation can be performed with the following codes:
+
+\begin{lstlisting}
+	# Calculate the absolute difference between the two individual's alleles, take abs(a-c) as example
+	if (is.TRUE(allelename)) {
+		acm=abs(AB[,1]-AB[,3])+abs(AB[,1]-AB[,3])%%1*100000
+	} else {
+		an<-as.data.frame(as.numeric(row.names(af)))
+		acm=abs(an[AB[,1],]-an[AB[,3],])+abs(an[AB[,1],]-an[AB[,3],])%%1*100000
+	}
+	# Choose the minimum mutation steps
+	steps<-pmin(acm,adm,bcm,bdm)
+	# dc and dd calculation
+	dc<-as.double(acm==steps)+as.double(bcm==steps)
+	dd<-as.double(adm==steps)+as.double(bdm==steps)
+	#PImu calculation
+	PImu<-as.double(steps==0)*para$PInomu+ # ignore mutation if step=0, i.e., there is at least one sharing allele between the two indiviudals
+	as.double(steps>10000)*mu+ # take mutation rate as PI if there is no integer step of mutation
+	as.double(steps>0 & steps<10000)*mu*10^(1-steps)*(dc/pc+dd/pd)/8 # step wise model of mutation
+\end{lstlisting}
+
+\paragraph{Example}
+An example is given, simulating and calculating parameters for 10,000 parent-child pairs
+
+\begin{lstlisting}
+	af = FortytwoSTR$afmatrix[[1]]
+	AB = pairsimu(af = af,ss = 10000,delta = c(0,1,0),allelename = FALSE)
+	LRelements<-LRparas(AB=AB, af=af, rare=FortytwoSTR$rare[1],allelename=FALSE,stepwisePI=TRUE,bred=TRUE)
+\end{lstlisting}
+
+The following 4 functions are utilized to compute more intricate LR for specific identification across multiple cases on a single marker:
+
+
+\subsection{`\textit{trioPI}()'}
+\label{4.3.5}
+The function would Calculate LR in standard trio cases, where 3 participants being available, a child (C), one of his/her confirmed parent (TP), as well as an individual who is unrelated to TP and alleged to be specific relative of the child (AR). Usually, AR is the alleged father of C, as in standard trio paternity testing. Null hypothesis, i.e., that the alleged participant is unrelated to the child, is taken as Hd. Inbreeding factors are not considered.
+
+\paragraph{Input arguments} 9 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{AR}: A data frame of 2 columns containing the genetic information of ARs;
+	\item \textbf{C}: A data frame of 2 columns containing the genetic information of Cs;
+	\item \textbf{TP}: A data frame of 2 columns containing the genetic information of ARs;
+	\item \textbf{af}: A data frame similar to \textbf{af} in \nameref{4.3.2} function;
+	\item \textbf{rare}: The frequency of rare alleles, which is similar to \textbf{rare} in \nameref{4.3.4} function;
+	\item \textbf{allelename}: The data type of \textbf{AR}, \textbf{C} and \textbf{TP} data frames, similar to \textbf{allelename} in \nameref{4.3.4} function;
+	\item \textbf{muAtoC}: Mutation rate from AR to C, if AR is alleged to be a parent of C. With a default set of 0.002, please note that mistakes would be introduced if the mutation rate is larger than 0.2;
+	\item \textbf{muTtoC}: Mutation rate from TP to C, with a default of 0.002/3.5, please note that mistakes would be introduced if the mutation rate is larger than 0.2;
+	\item \textbf{kappa1}: The $\kappa_1$ between AR and C under Hp, with a default set of 1, i.e., trio paternity testing.
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of \textbf{ss} rows and 1 columns would be output, containing the log\textsubscript{10}LR of each case.
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al4}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{trioPI()}
+	\label{Al4}
+	Conduct formal checks on the 3 genotype data frames, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Extract $p_c$ and $p_d$ with similar method to code in ``$\#$'' of \nameref{4.3.4} function\;
+	Calculate the four \textit{\textbf{d}} parameters in Eq.~(25) of the main text, each as the summation of two $\mathbbm{1}$ parameters calculated similar to code in ``$\dagger$'' of \nameref{4.3.4} function\;
+	\eIf{\textbf{kappa1}\textless{}1}{
+		\eIf{$d_{TPc}+d_{TPd}>0$ for all cases}{
+			Calculate results directly according to Eq.~(25) in the main text:\\
+			$LR=\frac{\kappa_1d_{TPc}d_{ARd}+\kappa_1d_{TPd}d_{ARc}}
+			{2d_{TPc}p_d+2d_{TPd}p_c}+\left(1-\kappa_1\right)$\\
+		}{
+			Calculate results considering mutation from TP to C\;
+		}
+	}{
+		
+		\eIf{$d_{TPc}d_{ARd}+d_{TPd}d_{ARc}>0$ for all cases}{
+			Calculate results directly according to Eq.~(27) in the main text:\\
+			${PI}_{trio}=\frac{d_{Mc}d_{AFd}+d_{Md}d_{AFc}}
+			{2d_{Mc}p_d+2d_{Md}p_c}$\tcc*[f]{kappa=1, i.e., trio paternity testing}\\
+		}{
+			Calculate results condidering mutations from both TP and AR to C.
+		}
+	}
+\end{algorithm}
+
+\paragraph{Example}
+Examples of two type of identifications are given: trio paternity test and avuncular test with the assistance of the child's mother:
+
+\begin{lstlisting}
+	# Three types of pedigrees are simulated: pedi1: father-mother-child; pedi2: random male-mother-child; and pedi3: uncle-mother-child
+	pedi1 <- data.frame(Person=c("F","M","C"),Father=c("RI","RI","F"),Mother=c("RI","RI","M"))
+	pedi2 <- data.frame(Person=c("F","M","C"),Father=c("RI","RI","RI"),Mother=c("RI","RI","M"))
+	pedi3 <- data.frame(Person=c("GF","GM","AR","F","M","C"),
+	Father=c("RI","RI","GF","GF","RI","F"),
+	Mother=c("RI","RI","GM","GM","RI","M"))
+	# Two types of LRs are calculated: PI_1 and PI_2: Paternity index for pedi1 and pedi 2; AI_1 and AI_2: Avuncular index in trio cases for pedi2 and pedi3.
+	
+	PI_1=PI_2=AI_1=AI_2=data.frame(Log10CLR=rep(0,10000))
+	# Simulation are carried out based on the frequency data of the 42 STRs in FortytwoSTR dataset setting sample size as 10,000
+	for (i in 1:42) {
+		Genotype1<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi1)
+		PI_1<-PI_1+trioPI(AR=Genotype1[,1:2],TP=Genotype1[,3:4],
+		C=Genotype1[,5:6],af=FortytwoSTR$afmatrix[[i]],
+		rare=FortytwoSTR$rare[i])
+		Genotype2<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi2)
+		PI_2<-PI_2+trioPI(AR=Genotype2[,1:2],TP=Genotype2[,3:4],
+		C=Genotype2[,5:6],af=FortytwoSTR$afmatrix[[i]],
+		rare=FortytwoSTR$rare[i])
+		AI_2<-AI_2+trioPI(AR=Genotype2[,1:2],TP=Genotype2[,3:4],
+		C=Genotype2[,5:6],af=FortytwoSTR$afmatrix[[i]],
+		rare=FortytwoSTR$rare[i],kappa1=0.5)             
+		Genotype3<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi3)
+		AI_1<-AI_1+trioPI(AR=Genotype3[,5:6],TP=Genotype3[,9:10],
+		C=Genotype3[,11:12],af=FortytwoSTR$afmatrix[[i]],
+		rare=FortytwoSTR$rare[i],kappa1=0.5)
+	}
+	#histogram of the final results
+	xmin1<-floor(min(min(PI_1$Log10CLR),min(PI_2$Log10CLR)))
+	xmax1<-ceiling(max(max(PI_1$Log10CLR),max(PI_2$Log10CLR)))
+	xmin2<-floor(min(min(AI_1$Log10CLR),min(AI_2$Log10CLR)))
+	xmax2<-ceiling(max(max(AI_1$Log10CLR),max(AI_2$Log10CLR)))
+	par(mfrow = c(2, 2))
+	hist(PI_1$Log10CLR,xlab = expression(log[10]~CPI),main = "True parentage cases",
+	xlim = c(xmin1,xmax1), col = "blue")
+	hist(AI_1$Log10CLR,xlab = expression(log[10]~CAI),main = "True avuncular cases",
+	xlim = c(xmin2,xmax2), col = "blue")  
+	hist(PI_2$Log10CLR,xlab = expression(log[10]~CPI),main = "False pedigree in parentage cases",
+	xlim = c(xmin1,xmax1), col = "red")
+	hist(AI_2$Log10CLR,xlab = expression(log[10]~CAI),main = "False pedigree in avuncular cases",
+	xlim = c(xmin2,xmax2), col = "red")
+\end{lstlisting}
+
+
+\subsection{`\textit{IICAL}()'}
+\label{4.3.6}
+The function would calculate incest index (${II}_{\varphi}$), i.e., the ratio for a parent-child pair between the probability that the child's other parent is a relative of the present parent to the probability that the child's parents are unrelated.
+
+\paragraph{Input arguments} 6 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{Parent}: A data frame of 2 columns containing the genetic information of the present parent;
+	\item \textbf{Child}: A data frame of 2 columns containing the genetic information of Cs;
+	\item \textbf{af}: A data frame similar to \textbf{af} in \nameref{4.3.2} function;
+	\item \textbf{rare}: The frequency of rare alleles, which is similar to \textbf{rare} in \nameref{4.3.4} function;
+	\item \textbf{allelename}: The data type of \textbf{Parent} and \textbf{Child} data frames, similar to \textbf{allelename} in \nameref{4.3.4} function;
+	\item \textbf{phi}: The kinship coefficient $\varphi$ between the two parents under Hp, with a default set of 0.25, i.e., assuming that they are parent-child pair or full-siblings.
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of \textbf{ss} rows and 2 columns would be output, containing two parameters used in such cases: (i) Ngs: the state of genotype similarity (gs) between the parent-child pair, i.e., whether both of the child's two alleles can be inherited from the present parent; (ii) the log\textsubscript{10}${II}_{\varphi}$ of each case.
+
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al5}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{IICAL()}
+	\label{Al5}
+	Conduct formal checks on the 2 genotype data frames, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Extract or calculate the two \textbf{\textit{d}} parameters and two \textbf{\textit{p}} parameters in Eq.~(20) of the main text with codes similar to corresponding ones in \nameref{4.3.4} function: 
+	${II}_{\varphi}=\frac{2\varphi d_{Ac}d_{Ad}}
+	{d_{Ac}p_d+d_{Ad}p_c}+\left(1-2\varphi\right)$\;
+	Calculate Ngs with code ``Ngs<-1-as.double(dc*dd==0)''\;
+	Calculate ${II}_{\varphi}$ with code ``IIphi<-log10(2*phi*dc*dd/(dc*pd+dd*pc)+1-2*phi)''\;	
+	Translate the error values (for with the parent cannot provide any of the child's alleles) into 1-2$\varphi$.
+\end{algorithm}
+
+Note that if there is no allele sharing between the two participants, ${II}_{\varphi}$ cannot be calculated directly according to Eq.~(20) in the main text due to the 0 value of the denominator. In this case, $\left(1-2\varphi\right)$ would be the output.
+
+\paragraph{Example}
+Two examples are given, simulating and calculating ${CII}_{0.25}$ based on the 42 STRs in \nameref{4.4.1} dataset for 10,000 mother-child pairs when Hp and Hd in the formula is true, respectively.
+
+\begin{lstlisting}
+	# Construct the pedi data.frame for incest cases
+	pedi<-data.frame(Person=c("F","M","C"),Father=c("RI","F","F"),Mother=c("RI","RI","M"))
+	II_1=II_2=data.frame(Ngs=rep(0,10000),IIphi=rep(0,10000))
+	for (i in 1:42) {
+		# Simulate 10,000 mother-child pairs with father-daughter incest with pedisimu() function
+		Genotype1<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi)
+		II_1<-II_1+IICAL(Parent = Genotype1[,3:4],Child = Genotype1[,5:6],af=FortytwoSTR$afmatrix[[i]],
+		rare=FortytwoSTR$rare[i][1,1],phi=0.25)
+		#Simulate 10,000 non-inbred mother-child pairs with pairsimu() function
+		Genotype2<-pairsimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,delta = c(0,1,0),allelename = FALSE)
+		II_2<-II_2+IICAL(Parent = Genotype2[,1:2],Child = Genotype2[,3:4],af=FortytwoSTR$afmatrix[[i]],
+		rare=FortytwoSTR$rare[i][1,1],phi=0.25)
+	}
+	# histograms of CII distributions in the two groups
+	xmin<-floor(min(min(II_1$IIphi),min(II_2$IIphi)))
+	xmax<-ceiling(max(max(II_1$IIphi),max(II_2$IIphi)))
+	par(mfrow = c(1, 2))
+	hist(II_2$IIphi,xlab = expression(log[10]~CII),main = "Non-inbreed cases",
+	xlim = c(xmin,xmax), col = "red")
+	hist(II_1$IIphi,xlab = expression(log[10]~CII),main = "Inbreed cases",
+	xlim = c(xmin,xmax), col = "blue")
+\end{lstlisting}
+
+
+\subsection{`\textit{LRhsip}()'}
+\label{4.3.7}
+The function would calculate LR for cases in which a pair of siblings (labeled as A and B, with genotype \textit{ab} and \textit{cd}, respectively) and one of their identical parent participated (labeled as P with genotype \textit{ef}). $H_p$ and $H_d$ are set as "the other parents of the two siblings are specific related" and "the other parents of them are unrelated", respectively. Inbreeding factors are not taken into consideration.
+\paragraph{Derivation of LR in the identification}
+Regard sibling B as individual B, and the other two individuals as R in Eq.~(21) of the main text. Similar to ``standard'' non-inbred trio cases in section 2.4.2 of the main text, the relationship between P and A would remain unchanged in both hypotheses if not considering inbreeding factors, thus, similarly
+
+\begin{equation}
+	LR=\left.\frac{\displaystyle{\sum_{j}\left[\Pr\left(B\equiv\mathcal{G}_j\middle|A,P,H_p\right)\times \Pr\left(\mathcal{G}_j\equiv cd\right)\right]}}
+	{\displaystyle{\sum_{k}\left[\Pr\left(B\equiv\mathcal{G}_k\middle|A,P,H_d\right)\times \Pr\left(\mathcal{G}_k\equiv cd\right)\right]}}\right.
+\end{equation}
+
+Under $H_d$, the non-participated parent of sibling B is unrelated to both P and sibling A, the allele he/she passed to sibling B must be $x_I$ from the perspective of IBD alleles. Thus, there are two types of sibling B's IBD genotype with equal probabilities, $e_Ix_I$ and $f_Ix_I$. 
+
+Under $H_p$, the distribution of sibling B's IBD genotype can be derived as follows: (i) derive the IBD genotype distribution of sibling A's non-participated parent (labeled as NPA); (ii) derive the IBD genotype distribution of sibling B's non-participated parent (labeled as NPB); and (iii) derive sibling B's IBD genotype.
+
+\begin{footnotesize}
+	\begin{equation}
+		\begin{aligned}
+			\left.\Pr\left(B\equiv\mathcal{G}_j\middle|A,P,H_p\right)\right.&=
+			\left.\sum_{x}\left[\Pr\left(NPA\equiv\mathcal{G}_x\middle|A,P,H_p\right)\times
+			\Pr\left(B\equiv\mathcal{G}_j\middle|NPA\equiv\mathcal{G}_x,A,P,H_p\right)\right]\right.\\
+			\left.\Pr\left(B\equiv\mathcal{G}_j\middle|NPA\equiv\mathcal{G}_x,A,P,H_p\right)\right.&=			\left.\sum_{y}\left[\Pr\left(NPB\equiv\mathcal{G}_y\middle|NPA\equiv\mathcal{G}_x,A,P,H_p\right)\times
+			\Pr\left(B\equiv\mathcal{G}_j\middle|NPB\equiv\mathcal{G}_y,NPA\equiv\mathcal{G}_x,A,P,H_p\right)\right]\right.
+		\end{aligned}
+	\end{equation}
+\end{footnotesize}
+
+
+
+(i) If not considering mutation, the IBD genotype of NPA must be $a_Ix_I$ or $b_Ix_I$, the probabilities of which can be calculated with Bayes' rules:
+
+\begin{footnotesize}
+	\begin{equation}
+		\left.\Pr\left(NPA\equiv a_Ix_I\middle|A,P,H_p\right)=
+		\frac{\Pr\left(NPA\equiv a_Ix_I\middle|P,H_p\right)\times\Pr\left(A\middle|NPA\equiv a_Ix_I,P,H_p\right)}
+		{\Pr\left(NPA\equiv a_Ix_I\middle|P,H_p\right)\times\Pr\left(A\middle|NPA\equiv a_Ix_I,P,H_p\right)+
+			\Pr\left(NPA\equiv b_Ix_I\middle|P,H_p\right)\times\Pr\left(A\middle|NPA\equiv b_Ix_I,P,H_p\right)}\right.
+	\end{equation}
+\end{footnotesize}
+
+Where $\Pr\left(NPA\equiv a_Ix_I\middle|P,H_p\right)=\Pr\left(NPA\equiv a_Ix_I\right)=p_a$ under non-inbred assumption. And because of the same assumption, the allele \textit{b} of sibling A must inherited from P, i.e., $\Pr\left(A\middle|NPA\equiv a_Ix_I,P,H_p\right)\propto d_{Pb}$. Thus, 
+
+\begin{equation}
+	\begin{cases}
+		\left.\Pr\left(NPA\equiv a_Ix_I\middle|A,P,H_p\right)=\displaystyle{\frac{p_ad_{Pb}}{p_ad_{Pb}+p_bd_{Pa}}}\right.\\
+		\left.\Pr\left(NPA\equiv b_Ix_I\middle|A,P,H_p\right)=\displaystyle{\frac{p_bd_{Pa}}{p_ad_{Pb}+p_bd_{Pa}}}\right.
+	\end{cases}
+\end{equation}
+
+(ii) Under $H_p$, NPB should be unrelated to P and the relationship between him/her with sibling A should happened through NPA, i.e., the genotype of P and sibling A should be useless for the IBD genotype inference of NPB when the IBD genotype of NPA is given, i.e., $\left.\Pr\left(NPB\equiv\mathcal{G}_y\middle|NPA\equiv\mathcal{G}_x,A,P,H_p\right)=\Pr\left(NPB\equiv\mathcal{G}_y\middle|NPA\equiv\mathcal{G}_x,H_p\right)\right.$. If no inbreeding factor is considered, the relationship between NPA and NPB can be described by $\kappa=\left\{\kappa_0,\kappa_1,\kappa_2\right\}$. It can be seen that, if $NPB\equiv a_Ix_I$ as example, there can be 2 types of NPB's IBD genotype, $a_Ix_I$ and $x_Iy_I$, with probabilities of $\kappa_2+\kappa_1/2=2\varphi$ and $\kappa_02+\kappa_1/2=\left(1-2\varphi\right)$, respectively, if $\varphi$ denotes the kinship coefficient between NPA and NPB; Similarly, if $NPB\equiv b_Ix_I$ as example, NPB's IBD genotype can be $b_Ix_I$ or $x_Iy_I$, with probabilities of $2\varphi$ and $\left(1-2\varphi\right)$, respectively; 
+
+
+(iii) Similar to the inference of NPB's IBD genotype, NPA and sibling A's genotypes are useless for the IBD genotype inference of sibling B when the IBD genotype of NPB and P are given, i.e.,
+\begin{equation}	
+	\left.\Pr\left(B\equiv\mathcal{G}_j\middle|NPB\equiv\mathcal{G}_y,NPA\equiv\mathcal{G}_x,A,P,H_p\right)
+	=\Pr\left(B\equiv\mathcal{G}_j\middle|NPB\equiv\mathcal{G}_y,A,H_p\right)\right.
+\end{equation}
+
+In summary, there can be 6 types of sibling B's IBD genotype, the inference process is listed in Table \ref{Table4}:
+
+\begin{table}[ht]
+	\renewcommand\arraystretch{1.75}
+	\centering
+	\caption{Sibling B's IBD genotype}
+	\label{Table4}
+	\begin{small}
+		\begin{threeparttable}
+			\begin{tabular*}{0.95\linewidth}{@{\extracolsep{\fill}}ccccccc}
+				\hline
+				B                         &            NPA            & $\left.\Pr\left(NPA\equiv a_Ix_I\middle|A,P,H_p\right)\right.$ &   NPB    & $\left.\Pr\left(NPB\equiv\mathcal{G}_y\middle|NPA\equiv\mathcal{G}_x,H_p\right)\right.$ & $\Pr_1$\tnote{$\ast$} &                 Total Probability                 \\ \hline
+				$a_Ie_I$                      &         $a_Ix_I$          &            $\frac{p_ad_{Pb}}{p_ad_{Pb}+p_bd_{Pa}}$             & $a_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     & $\frac{\varphi p_ad_{Pb}}{2p_ad_{Pb}+2p_bd_{Pa}}$ \\
+				\hdashline[2pt/2pt]
+				$a_If_I$          &         $a_Ix_I$          &            $\frac{p_ad_{Pb}}{p_ad_{Pb}+p_bd_{Pa}}$             & $a_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     & $\frac{\varphi p_ad_{Pb}}{2p_ad_{Pb}+2p_bd_{Pa}}$ \\
+				\hdashline[2pt/2pt]
+				$b_Ie_I$          &         $b_Ix_I$          &            $\frac{p_bd_{Pa}}{p_ad_{Pb}+p_bd_{Pa}}$             & $b_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     & $\frac{\varphi p_bd_{Pa}}{2p_ad_{Pb}+2p_bd_{Pa}}$ \\
+				\hdashline[2pt/2pt]
+				$b_If_I$          &         $b_Ix_I$          &            $\frac{p_bd_{Pa}}{p_ad_{Pb}+p_bd_{Pa}}$             & $b_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     & $\frac{\varphi p_bd_{Pa}}{2p_ad_{Pb}+2p_bd_{Pa}}$ \\
+				\hdashline[2pt/2pt]
+				\multirow{4}{*}{$e_Ix_I$} & \multirow{2}{*}{$a_Ix_I$} &    \multirow{2}{*}{$\frac{p_ad_{Pb}}{p_ad_{Pb}+p_bd_{Pa}}$}    & $a_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     &      \multirow{4}{*}{$\frac{1-\varphi}{2}$}       \\
+				&                           &                                                                & $x_Iy_I$ &     $1-2\varphi$      &     $\frac{1}{2}$     &                                                   \\
+				& \multirow{2}{*}{$b_Ix_I$} &    \multirow{2}{*}{$\frac{p_bd_{Pa}}{p_ad_{Pb}+p_bd_{Pa}}$}    & $b_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     &                                                   \\
+				&                           &                                                                & $x_Iy_I$ &     $1-2\varphi$      &     $\frac{1}{2}$     &                                                   \\
+				\hdashline[2pt/2pt]
+				\multirow{4}{*}{$f_Ix_I$} & \multirow{2}{*}{$a_Ix_I$} &    \multirow{2}{*}{$\frac{p_ad_{Pb}}{p_ad_{Pb}+p_bd_{Pa}}$}    & $a_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     &      \multirow{4}{*}{$\frac{1-\varphi}{2}$}       \\
+				&                           &                                                                & $x_Iy_I$ &     $1-2\varphi$      &     $\frac{1}{2}$     &                                                   \\
+				& \multirow{2}{*}{$b_Ix_I$} &    \multirow{2}{*}{$\frac{p_bd_{Pa}}{p_ad_{Pb}+p_bd_{Pa}}$}    & $b_Ix_I$ &      $2\varphi$       &     $\frac{1}{4}$     &                                                   \\
+				&                           &                                                                & $x_Iy_I$ &     $1-2\varphi$      &     $\frac{1}{2}$     &                                                   \\ \hline
+			\end{tabular*}
+			\begin{tablenotes}
+				\item[$\ast$] $\left.\Pr_1=\Pr\left(B\equiv\mathcal{G}_j\middle|NPB\equiv\mathcal{G}_y,A,H_p\right)\right.$;
+			\end{tablenotes}
+		\end{threeparttable}
+	\end{small}
+\end{table}
+
+With calculation similar to Eq.~(24) in the main text, it can be derived that
+
+\begin{equation}
+	LR=\frac{\varphi p_a d_{Pb}\left(\mathbbm{1}_{ac}d_{Pd}+\mathbbm{1}_{ad}d_{Pc}\right)+
+		\varphi p_b d_{Pa}\left(\mathbbm{1}_{bc}d_{Pd}+\mathbbm{1}_{bd}d_{Pc}\right)}
+	{\left(d_{Pa}p_{b}+d_{Pb}p_{a}\right)\left(d_{Pc}p_{d}+d_{Pd}p_{c}\right)}+
+	\left(1-\varphi\right)
+	\label{eq:9}
+\end{equation}  
+
+According to the equation, the function \nameref{4.3.7} is constructed.
+\paragraph{Input arguments} 7 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{A}: A data frame of 2 columns containing the genetic information of individual As;
+	\item \textbf{B}: A data frame of 2 columns containing the genetic information of individual Bs;
+	\item \textbf{P}: A data frame of 2 columns containing the genetic information of the identical parents;
+	\item \textbf{af}: A data frame similar to \textbf{af} in \nameref{4.3.2} function;
+	\item \textbf{rare}: The frequency of rare alleles, which is similar to \textbf{rare} in \nameref{4.3.4} function;
+	\item \textbf{allelename}: The data type of \textbf{A}, \textbf{B} and \textbf{P} data frames, similar to \textbf{allelename} in \nameref{4.3.4} function;
+	\item \textbf{phi}: The kinship coefficient $\varphi$ between the non-participant parents of the two half-siblings under Hp, with a default set of 0.5, i.e., assuming that individual A is a full-sibling of individual B.
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of \textbf{ss} rows and 1 columns would be output, containing the log\textsubscript{10}LR of each case.
+
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al6}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{LRhsip()}
+	\label{Al6}
+	Conduct formal checks on the 3 genotype data frames, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Extract or calculate the \textbf{\textit{d}} parameters, $\mathbbm{1}$ parameters, and \textbf{\textit{p}} parameters in Eq.~(\ref{eq:9}) with codes similar to corresponding ones in \nameref{4.3.4} function\;
+	Calculate LR according to Eq.~(\ref{eq:9})\;
+	Transfer error values, i.e., where no allele shared between P with A or B, into $\left(1-\varphi\right)$\;
+	Transfer the LR value into log\textsubscript{10}LR value.
+\end{algorithm}
+
+Note that if there is no allele sharing between P with A or B, LR cannot be calculated directly according to Eq.~(\ref{eq:9}) due to the 0 value of the denominator. In this case, $\left(1-\varphi\right)$ would be the output.
+
+
+\paragraph{Example}
+Two examples are given, simulating and calculating LR with $\varphi=0.5$ for 10,000 A-B-P groups when Hp (A is full-sibling to B) and Hd (NPA is unrelated to NPB) in the formula is true, respectively.
+
+\begin{lstlisting}
+	# Construct pedi data.frames for two types of pedigrees
+	pedi1 <- data.frame(Person=c("F","M","A","B"),
+	Father=c("RI","RI","F","F"),
+	Mother=c("RI","RI","M","M"))
+	pedi2 <- data.frame(Person=c("M","A","B"),
+	Father=c("RI","RI","RI"),
+	Mother=c("RI","M","M"))
+	LR_1=LR_2=data.frame(Log10CLR=rep(0,10000))
+	for (i in 1:42) {
+		# Simulate 10000 groups of A/B/P where A is full sibiling of B
+		Genotype1=pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi1)
+		LR_1=LR_1+LRhsip(A=Genotype1[,5:6],B=Genotype1[,7:8],P=Genotype1[,3:4],
+		af = FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+		# Simulate 10000 groups of A/B/P where A is half sibling of B, i.e., the true phi=0
+		Genotype2=pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi2)
+		LR_2=LR_2+LRhsip(A=Genotype2[,3:4],B=Genotype2[,5:6],P=Genotype2[,1:2],
+		af = FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+	}
+	# histograms of CLR distributions in the two groups
+	xmin<-floor(min(min(LR_1$Log10CLR),min(LR_2$Log10CLR)))
+	xmax<-ceiling(max(max(LR_1$Log10CLR),max(LR_2$Log10CLR)))
+	par(mfrow = c(1, 2))
+	hist(LR_2$Log10CLR,xlab = expression(log[10]~CLR),main = "Fault pedigree",
+	xlim = c(xmin,xmax), col = "red")
+	hist(LR_1$Log10CLR,xlab = expression(log[10]~CLR),main = "True cases",
+	xlim = c(xmin,xmax), col = "blue")
+\end{lstlisting}
+
+
+
+\subsection{`\textit{LRgpgcam}()'}
+\label{4.3.8}
+The function will compute the likelihood ratio for grandparentage determination using the reference of an uncle or aunt. In such scenarios, a child (C, with genotype \textit{cd}) is claimed to be the grandchild of another individual (GP, with genotype \textit{ef}), and the offspring (A, with genotype \textit{ab}) of the alleged grandparent is involved. Additionally, the genetic information of B's other parent (M, with genotype \textit{gh}) may or may not be available. Hp assumes that B is the offspring of A's full sibling, and Hd assumes that B is not related to GP and A. The consideration of inbreeding is not included.
+
+\paragraph{Derivation of LR in the identification}
+Similar to the derivation in \nameref{4.3.7} function, C can be regarded as individual B in Eq.~(21) of the main text and the relationship among other individuals would remain unchanged. Additionally, the genotype of GP and A is unrelated to C's IBD genotype under Hd. Thus,
+
+\begin{equation}
+	LR=\left.\frac{\displaystyle{\sum_{j}\left[\Pr\left(C\equiv\mathcal{G}_j\middle|A,GP,M,H_p\right)\times \Pr\left(\mathcal{G}_j\equiv cd\right)\right]}}
+	{\displaystyle{\sum_{k}\left[\Pr\left(C\equiv\mathcal{G}_k\middle|M,H_d\right)\times \Pr\left(\mathcal{G}_k\equiv cd\right)\right]}}\right.
+\end{equation}
+
+If label C's other parent (i.e, GP's offspring and A's full-sibling) as NP, $\left.\Pr\left(C\equiv\mathcal{G}_j\middle|A,GP,M,H_p\right)\right.$ can be calculated as follows. Note that the individuals useless in specific reference have been removed from corresponding probabilities.
+
+\begin{equation}
+	\left.\Pr\left(C\equiv\mathcal{G}_j\middle|A,GP,M,H_p\right)=
+	\sum_{x}\left[\Pr\left(NP\equiv\mathcal{G}_x\middle|A,GP,H_p\right)
+	\times
+	\Pr\left(C\equiv\mathcal{G}_j\middle|NP\equiv\mathcal{G}_x,M,H_p\right)\right]\right.
+\end{equation}
+
+It is clear that GP, A, and NP can be referred to as P, sibling A, and sibling B respectively in the context of identifying \ref{4.3.7}, and the distribution of NP's IBD genotype is illustrated in Table \ref{Table4}. Hence, there may be 10 or 5 variations of C's IBD genotypes, based on the presence or absence of M, and consequently, the LR can be computed as follows if M is available:
+
+\begin{equation}
+	LR=\displaystyle{
+		\frac{d_{GPc}d_{Md}+d_{GPd}d_{Mc}}{4p_cd_{Md}+4p_dd_{Mc}}+
+		\frac{p_ad_{GPb}\left(\mathbbm{1}_{ac}d_{Md}+\mathbbm{1}_{ad}d_{Mc}\right)+
+			p_bd_{GPa}\left(\mathbbm{1}_{bc}d_{Md}+\mathbbm{1}_{bd}d_{Mc}\right)}
+		{4\left(p_ad_{GPb}+p_bd_{GPa}\right)\left(p_cd_{Md}+p_dd_{Mc}\right)}+\frac{1}{4}}
+	\label{eq:12}
+\end{equation}
+
+If M is unavailable,
+
+\begin{equation}
+	LR=\displaystyle{
+		\frac{d_{GPc}}{8p_c}+\frac{d_{GPd}}{8p_d}+\frac{p_ad_{GPb}\mathbbm{1}_{ac}+
+			p_bd_{GPa}\mathbbm{1}_{bc}}
+		{8p_c\left(p_ad_{GPb}+p_bd_{GPa}\right)}+
+		\frac{p_ad_{GPb}\mathbbm{1}_{ad}+
+			p_bd_{GPa}\mathbbm{1}_{bd}}
+		{8p_d\left(p_ad_{GPb}+p_bd_{GPa}\right)}+\frac{1}{4}}
+	\label{eq:13}
+\end{equation}
+
+It can be seen that the Eq.~(\ref{eq:12}) can be transferred into Eq.~(\ref{eq:13}) by replacing $d_{Mc}$ and $d_{Md}$ with $p_c$ and $p_d$, respectively. According to the equation, the function \nameref{4.3.8} is constructed.
+\paragraph{Input arguments} 7 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{A}: A data frame of 2 columns containing the genetic information of individual As;
+	\item \textbf{C}: A data frame of 2 columns containing the genetic information of individual Cs;
+	\item \textbf{GP}: A data frame of 2 columns containing the genetic information of individual GPs;
+	\item \textbf{M}: \textit{NULL} or a data frame of 2 columns containing the genetic information of individual Ms;
+	\item \textbf{af}: A data frame similar to \textbf{af} in \nameref{4.3.2} function;
+	\item \textbf{rare}: The frequency of rare alleles, which is similar to \textbf{rare} in \nameref{4.3.4} function;
+	\item \textbf{allelename}: The data type of the 4 genotype data frames, similar to \textbf{allelename} in \nameref{4.3.4} function;
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A data frame of \textbf{ss} rows and 1 columns would be output, containing the log\textsubscript{10}LR of each case.
+
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al7}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{LRgpgcam()}
+	\label{Al7}
+	Conduct formal checks on the 3 genotype data frames containing genotypes, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Extract the 4 \textbf{\textit{p}} values in Eq.~(\ref{eq:12}) with method similar to ``$\#$'' in \nameref{4.3.4} function\;
+	\eIf{\textbf{M}$\neq$`\textit{NULL}'}{
+		Conduct formal checks on \textbf{M} data frame, \textcolor{red}{\textbf{stop}} if error\;		
+		Calculate $d_{Mc}$ and $d_{Md}$\;
+	}{
+		Set $d_{Mc}=p_c$ and $d_{Md}=p_d$\;
+	}
+	Calculate other \textbf{\textit{d}} or $\mathbbm{1}$ parameters\;
+	Calculate the LR results according to Eq.~(\ref{eq:12}). 
+\end{algorithm}
+
+The three parts of Eq.~(\ref{eq:12}) correspond to the three scenarios of C's inheritance under Hp: i) C's paternal allele originated from one of GP's two alleles; ii) C's paternal allele is IBD to the allele NP passed to A ; and iii) C's paternal allele is IBD to the allele NP not passed to A. In the first two components, two factors appear within the denominator: $\left(p_ad_{GPb}+p_bd_{GPa}\right)$ and $\left(p_cd_{Md}+p_dd_{Mc}\right)$, which would equal 0 when there is no allele sharing between GP-A and M-C pairs, respectively. Such 0 values would occur due to mutation or the false relationship between the corresponding, and if so, the parts with 0 value in the denominator would be treated as 0 in the LR calculation equation. The output value of LR would have a minimum value of 1/4 because of part iii) in the formula.
+
+
+
+\paragraph{Example}
+Two examples are given, simulating and calculating CLR based on the 42 STRs in \nameref{4.4.1} dataset, for 10,000 A-C-GP-P groups when Hp and Hd in the formula is true, respectively.
+
+\begin{lstlisting}
+	# Construct pedi data.frames for two types of pedigrees
+	pedi1 <- data.frame(Person=c("GF","GM","F","A","M","C"),
+	Father=c("RI","RI","GF","GF","RI","F"),
+	Mother=c("RI","RI","GM","GM","RI","M"))
+	pedi2 <- data.frame(Person=c("GF","GM","F","A","M","C"),
+	Father=c("RI","RI","RI","GF","RI","F"),
+	Mother=c("RI","RI","RI","GM","RI","M"))
+	LR_1=LR_2=data.frame(Log10CLR=rep(0,10000))
+	for (i in 1:42) { 
+		# Simulate 10000 group of pedigrees where the Hp is true
+		Genotype <- pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi1)
+		LR_1 <-LR_1+ LRgpgcam(A=Genotype[,7:8],C=Genotype[,11:12],GP=Genotype[,1:2],M=Genotype[,9:10],
+		af=FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+		#'#Simulate 10000 group of false pedigrees, i.e., P and C is unrelated to GP and A
+		Genotype <- pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi2)
+		LR_2 <-LR_2+ LRgpgcam(A=Genotype[,7:8],C=Genotype[,11:12],GP=Genotype[,1:2],M=Genotype[,9:10],
+		af=FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+	}
+	# histograms of CLR distributions in the two groups
+	xmin<-floor(min(min(LR_1$Log10CLR),min(LR_2$Log10CLR)))
+	xmax<-ceiling(max(max(LR_1$Log10CLR),max(LR_2$Log10CLR)))
+	par(mfrow = c(1, 2))
+	hist(LR_2$Log10CLR,xlab = expression(log[10]~CLR),main = "Fault pedigree",
+	xlim = c(xmin,xmax), col = "red")
+	hist(LR_1$Log10CLR,xlab = expression(log[10]~CLR),main = "True cases",
+	xlim = c(xmin,xmax), col = "blue")  
+\end{lstlisting}
+
+\subsection{`\textit{logLR}()'}
+\label{4.3.9}
+The function would calculate parameters for a single pairwise case, including CIBS score and multiple types of log\textsubscript{10}CLR.
+
+\paragraph{Input arguments} 8 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{AB}: A data frame of 4 columns containing the genetic information of the two individuals, each two columns for each; Each row of the data frame contains the information of the four allele on a marker, the name of which should be set as the row names. Note that all the row names of this data frame should be included in the data frame names of list \textbf{afmatrix} and column names of data frame \textbf{rare}, otherwise, the function would report an error;
+	\item \textbf{afmatrix}: \textit{NULL} or a list of multiple data frames containing allele frequency data on multiple markers, which can be generated using \ref{4.3.1} function. The data frame names should be marker names. For each data frame, there should be 1 column and multiple rows, the column name should be 'Freq' and row names should be allele names on the corresponding marker.
+	\item \textbf{rare}: \textit{NULL} or a data frame of 1 row and multiple columns, containing frequency of rare alleles on each marker. The column names should be the name of each marker;
+	\item \textbf{allelename}: The data type of the genotype data frame, similar to \textbf{allelename} in \nameref{4.3.4} function;
+	\item \textbf{stepPI}: Setting of mutation calculation method similar to \textbf{stepwisePI} in \nameref{4.3.4} function;
+	\item \textbf{adelta3}: Distributions of the IBD coefficient of multiple outbred $H_p$ in LR calculation, which should be a data.frame with 3 columns and $x$ rows, where $x$ denote the number of such LRs being calculated. The names of columns should be `\textit{k0}', `\textit{k1}' and `\textit{k2}', and the names of rows should be the names of each LR. If no outbred LR is needed, set as \textit{NULL};
+	\item \textbf{adelta9}: Distributions of the IBD coefficient of multiple inbred $H_p$ in LR calculation, which can be input similar to argument`\textbf{adelta3}', and the column names should be `\textit{D1}' to `\textit{D9}'. If no inbred LR is needed, set as \textit{NULL};
+	\item \textbf{mu}: mutation rate in parentage testing, with a default of 0.002
+\end{itemize}	
+\hrule
+
+\paragraph{Output value}
+A list of 2 data frames would be output: (i) ``results\_on\_each\_marker'': a data frame containing calculation results on each marker, with \textit{nl} rows and multiple columns, each row for a marker and each column for a type of parameter, including IBS and multiple log10 values of LRs; (ii) ''total\_results\_of\_the\_case'': a data frame of 1 column and multiple rows, containing the CIBS and log10CLR results for the whole case.
+
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al8}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{logLR()}
+	\label{Al8}
+	Conduct formal checks on the input arguments, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Calculate IBS score on each marker as the 1st column of ``results\_on\_each\_marker'' data frame, with method similar to ``$\ddagger$'' of \nameref{4.3.4} function\;
+	\eIf{\textbf{adelta3}=\textbf{adelta9}=NULL}{
+		Output ``results\_on\_each\_marker'' directly\;
+	}{
+		Extract $p_c$ and $p_d$ with a for loop;\tcc*[f]{$\dagger$}\\
+		Calculate LRid and PInomu, as well as PImu according to \textbf{stepPI} setting, similar to \nameref{4.3.4} function\;
+		\eIf{\textbf{adelta9}=NULL}{
+			\For{i=1:(row number of \textbf{adelta3})}{
+				Calculate log\textsubscript{10}LR with LRid, PInomu or PImu, according to $\kappa$ distribution of the ith row of \textbf{adelta3}\;
+				Bind the result with ``results\_on\_each\_marker'' data frame as the (i+1) column\;
+			}
+		}{
+			Extract or calculate $p_a$, $\mathbbm{1}_{ab}$ and $\mathbbm{1}_{cd}$\;
+			Calculate the factors of $\Delta_1\sim\Delta_6$ in Eq.~(15) of the main text\label{line1}\;
+			\eIf{\textbf{adelta3}=NULL}{
+				\For{i=1:(row number of \textbf{adelta9})}{
+					Calculate log\textsubscript{10}LR with the LRid, PInomu or PImu, and the 6 factors in line \ref{line1}, according to $\Delta$ distribution of the ith row of \textbf{adelta9}\;
+					Bind the result with ``results\_on\_each\_marker'' data frame as the (i+1) column\;
+				}
+			}{
+				Calculate outbred and inbred log\textsubscript{10}LRs one type by one type with two for loops\;
+			}
+		}
+		
+	}
+	Construct ''total\_results\_of\_the\_case'' data frame, by calculate total results of each parameters in ``results\_on\_each\_marker'' data frame using ``as.data.frame(colSums(...))'' code\;
+	Output the 2 data frames ``results\_on\_each\_marker'' and  ''total\_results\_of\_the\_case'' as a list.
+\end{algorithm}
+
+
+$\ddagger$ Frequency data would be extracted differently from single locus functions such as \nameref{4.3.4}, as the frequency data are different among markers. ``For()'' loop would be needed and the code would differ according to \textbf{allelename} setting. Take $p_c$ as example:
+
+\begin{lstlisting}
+	if (isTRUE(allelename)) {
+		for (i in 1:nl) {
+			para$pc[i]<-afmatrix[[rownames(AB)[i]]][as.character(AB[i,3]),]
+			if(is.na(para$pc[i])){
+				para$pc[i]<-rare[[rownames(AB)[i]]]
+			}
+		}
+	} else{
+		for (i in 1:nl) {
+			para$pc[i]<-afmatrix[[rownames(AB)[i]]][AB[i,3],]
+			if(is.na(para$pc[i])){
+				para$pc[i]<-rare[[rownames(AB)[i]]]
+			}
+		}
+	}
+\end{lstlisting}
+
+\paragraph{Example}
+An example is given, simulating and calculating CLR for a pairwise case:
+
+\begin{lstlisting}
+	AB<-data.frame(a=rep(0,42),b=rep(0,42),c=rep(0,42),d=rep(0,42))
+	for (i in 1:42) {
+		temp<-pairsimu(af = FortytwoSTR$afmatrix[[i]],ss = 1,delta = c(0,1,0),allelename = TRUE)
+		AB[i,]=temp
+		rownames(AB)[i]=names(FortytwoSTR$afmatrix)[i]
+	}
+	adelta3<-data.frame(k0=c(0,0.25,0.5),k1=c(1,0.5,0.5),k2=c(0,0.25,0),row.names = c("PC","FS","HS"))
+	adelta9<-data.frame(D1=0,D2=0,D3=0,D4=0,D5=0.25,D6=0,D7=0.25,D8=0.5,D9=0,row.names = "FIMCpair")
+	results<-logLR(AB=AB,afmatrix=FortytwoSTR$afmatrix,rare=FortytwoSTR$rare,stepPI=TURE,adelta3=adelta3,adelta9=adelta9)
+\end{lstlisting}
+
+
+\subsection{`\textit{testsimulation}()'}
+\label{4.3.10}
+An all-in-one simulating and calculating solution for kinship analysis: Combining the genotype generating and LR calculating functions, a integrated function is given for the batch simulation and calculation in kinship analysis, which can generate genotype combinations of multiple individual pairs with specific relationship on multiple independent markers and then calculate multiple types of CLR for each pair. 
+
+\paragraph{Input arguments} 8 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{afmatrix}: The allele frequency data utilized in the simulation and calculation, which is in a format similar to the \textbf{afmatrix} in the \nameref{4.3.9} function, with the exception that the argument cannot be \textit{NULL}.
+	\item \textbf{ss}: The sample size to be simulated;
+	\item \textbf{tdelta}: The distribution of $\Delta$ or $\kappa$ describing the true relation between the simulated individuals;
+	\item \textbf{stepPI}: Setting of mutation calculation method similar to \textbf{stepwisePI} in \nameref{4.3.4} function;
+	\item \textbf{adelta3}: Similar to \textbf{adelta3} in \nameref{4.3.9} function;
+	\item \textbf{adelta9}: Similar to \textbf{adelta9} in \nameref{4.3.9} function;
+	\item \textbf{pedname}: The name of the simulated relationship;
+	\item \textbf{mu}: mutation rate in parentage testing, with a default of 0.002.
+\end{itemize}	
+\hrule
+
+
+\paragraph{Output value}
+The output of this function will be a data.frame consisting of ss rows and multiple columns. Each row in the data.frame will correspond to the calculation results of a simulated pair defined by the following code. The first column will contain the relation name defined by the argument `\textit{pedname}', while the second column will contain the CIBS value for each pair. The remaining columns will contain the 10 logarithms of multiple types of LRs defined by the arguments `\textit{adelta3}' and `\textit{adelta9}'.
+\paragraph{Detailed description}
+The function will conduct an idealized simulation using allele frequency of multiple markers. Typically, such simulations are useful for the initial assessment of a specific identification panel. Due to its primary nature, some confounding factors are disregarded in the coding of this function, such as excluding mutation factors when generating simulated individuals, which results in rare alleles not being generated and hence, the frequency of rare alleles does not need to be considered. The function is performed as Algorithm \ref{Al9}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{testsimulation()}
+	\label{Al9}
+	Conduct formal check on the input delta values, and \textcolor{red}{\textbf{stop}} if any error exists\;
+	Extract \textit{nl} as the number of data frames contained in \textbf{afmatrix} list\;
+	Construct the "result" data frame with \textit{ss} rows and a number of columns determined by the \textbf{adelta3} and \textbf{adelta9} settings. Set all values in the data frame to 0\; 
+	\For{i=1:nl}{
+		Generate genotypes for \textit{ss} individual pairs according to the relationship described by \textbf{tdelta}, based on the frequency data contained in the ith data frame of the \textbf{afmatrix} list, using the \nameref{4.3.2} function\; 
+		Calculate CIBS and multiple log\textsubscript{10}LR values according to the \textbf{adelta3}, \textbf{adelta9}, \textbf{stepPI}, and \textbf{mu} settings, using the \nameref{4.3.4} function\;
+		Sum the calculation results with the updated "result" data frame\;
+	}
+	Output the ``result'' data frame.
+\end{algorithm}
+
+\paragraph{Example}
+An example is given, simulating and calculating 4 types of CLRs for 10,000 parent-child pairs, based on the 42 STRs in \nameref{4.4.1} dataset:
+
+\begin{lstlisting}
+	adelta3<-data.frame(k0=c(0,0.25,0.5),k1=c(1,0.5,0.5),k2=c(0,0.25,0),row.names=c("PC","FS","HS"))
+	adelta9<-data.frame(D1=0,D2=0,D3=0,D4=0,D5=0.25,D6=0,D7=0.25,D8=0.5,D9=0,row.names="FIMCpair")
+	data(FortytwoSTR)
+	results<-testsimulation(afmatrix=FortytwoSTR[["afmatrix"]],ss=10000,tdelta=c(0,1,0),adelta3=adelta3,adelta9=adelta9,pedname="PC")
+	results$total_results_of_the_case
+\end{lstlisting}
+
+\subsection{`\textit{outputCSV}()'}
+\label{4.3.11}
+The function would output population data such as ``\nameref{4.4.1}'' into .csv files, which can be used for \nameref{4.3.1} function.
+
+\paragraph{Input arguments} 2 input arguments are needed for the function
+\hrule	
+\begin{itemize}[leftmargin=1em]
+	\item \textbf{data}: The name of a list of 4 data frames in format similar to ``\nameref{4.4.1}'';
+	\item \textbf{strpath}: The pathway to output the resulting .csv file;
+\end{itemize}	
+\hrule
+
+
+\paragraph{Output value}
+A .csv file in ISFG format, i.e., put allele frequency data in the cells right and down to B2
+\paragraph{Detailed description}
+The function is performed as Algorithm \ref{Al10}. 
+
+\begin{algorithm}[H]
+	\small
+	\caption{outputCSV()}
+	\label{Al10}
+	Conduct formal check on the input delta values, and \textcolor{red}{\textbf{stop}} if the data list is not in format similar to \nameref{4.4.1}\;
+	Extract \textit{nl} as the number of data frames contained in `afmatrix' list\;
+	Extract allele names into a one-column data frame `allelenames' from the row names of the data frames contained in `afmatrix' list\;
+	Remove the duplicate in `allelenames' data frame and sort it from small to large, set the row number of `allelenames' as \textit{maxa}\;
+	Construct a data frame ``results'' with (1+nl) columns and (1+maxa) rows, set column names as the marker names, data in the 1st column as `allelenames';
+	\For{i=1:nl}{
+		Extract the allele frequencies on the ith marker into the (i+1)th column of `results' data frame and replace the NA values with 0\;
+	}
+	Extract the number of individual on each marker into the last row;
+	Outout the result data frame
+\end{algorithm}
+
+\paragraph{Example}
+An example is given, outputting the \nameref{4.4.1} data into a .csv file:
+
+\begin{lstlisting}
+	path<-tempdir()
+	outputCSV(FortytwoSTR,file.path(path,'data.csv'))
+\end{lstlisting}
+
+
+\section{Data involved}
+
+\subsection{\textit{FortytwoSTR}}
+\label{4.4.1}
+A list of 4 data frames, containing the allele frequency data for the Chinese Han population on a 42-plex STR panel, along with forensic parameters. The list is created using the \nameref{4.3.1} function with the default settings, which are: (i) utilizing the values in the last row as the sample size in the population survey; (ii) computing frequencies of rare alleles using the 'ISFG' method.
+
+\begin{lstlisting}
+	FortytwoSTR<-EvaluatePanel(strpath = "https://raw.githubusercontent.com/Guanju-Ma/data111/main/42STR.csv")
+\end{lstlisting}
+\subsection{\textit{pediexample}}
+A data frame containing an example of the input form of \textbf{pedi} argument used in \nameref{4.3.3} function, which is generated with the following code:
+
+\begin{lstlisting}
+	pediexample<-data.frame(Person=c("GF","GM","F1","F2","M1","M2","A","B"),
+	Father=c("RI","RI","GF","GF","RI","RI","F1","F2"),
+	Mother=c("RI","RI","GM","GM","RI","RI","M1","M2"))
+\end{lstlisting}
+which results in a data frame as follows:
+\begin{table}[!h]
+	\begin{scriptsize}
+		\begin{tabular}{lccc}
+			& Person & Father & Mother \\
+			\#\#1 & ``GF'' & ``RI'' & ``RI'' \\
+			\#\#2 & ``GM'' & ``RI'' & ``RI'' \\
+			\#\#3 & ``F1'' & ``GF'' & ``GM'' \\
+			\#\#4 & ``F2'' & ``GF'' & ``GM'' \\
+			\#\#5 & ``M1'' & ``RI'' & ``RI'' \\
+			\#\#6 & ``M2'' & ``RI'' & ``RI'' \\
+			\#\#7 & ``A''  & ``F1'' & ``M1'' \\
+			\#\#8 & ``B''  & ``F2'' & ``M2''
+		\end{tabular}
+	\end{scriptsize}
+\end{table}
+
+\end{document}

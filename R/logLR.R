@@ -17,14 +17,15 @@
 #' # example code
 #' AB<-data.frame(a=rep(0,42),b=rep(0,42),c=rep(0,42),d=rep(0,42))
 #' for (i in 1:42) {
-#'   temp<-pairsimu(af = FortytwoSTR$afmatrix[[i]],ss = 1,delta = c(0,1,0),allelename = FALSE)
-#'   AB[i,]=temp
-#'   rownames(AB)[i]=names(FortytwoSTR$afmatrix)[i]
+#' temp<-pairsimu(af = FortytwoSTR$afmatrix[[i]],ss = 1,delta = c(0,1,0),allelename = FALSE)
+#' AB[i,]=temp
+#' rownames(AB)[i]=names(FortytwoSTR$afmatrix)[i]
 #' }
 #' adelta3<-data.frame(k0=c(0,0.25,0.5),k1=c(1,0.5,0.5),k2=c(0,0.25,0),row.names = c("PC","FS","HS"))
 #' adelta9<-data.frame(D1=0,D2=0,D3=0,D4=0,D5=0.25,D6=0,D7=0.25,D8=0.5,D9=0,row.names = "FIMCpair")
 #' results<-logLR(AB=AB,afmatrix=FortytwoSTR$afmatrix,rare=FortytwoSTR$rare,stepPI=TRUE,
 #' adelta3=adelta3,adelta9=adelta9)
+#' results$total_results_of_the_case
 
 logLR<-function(AB,afmatrix=NULL,rare=NULL,allelename=FALSE,stepPI=FALSE,
                 adelta3=NULL,adelta9=NULL,mu=0.002){

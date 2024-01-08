@@ -17,7 +17,7 @@
 #' @examples
 #' af = FortytwoSTR$afmatrix[[1]]
 #' AB = pairsimu(af = af,ss = 10000,delta = c(0,1,0),allelename = FALSE)
-#' LRelements<-LRparas(AB=AB, af=af, rare=FortytwoSTR$rare[1],allelename=FALSE,
+#' LRelements<-LRparas(AB=AB, af=af, rare=FortytwoSTR$rare[1][1,1],allelename=FALSE,
 #'   stepwisePI=TRUE,bred=TRUE)
 #'
 

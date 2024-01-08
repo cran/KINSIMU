@@ -28,22 +28,34 @@ a data frame with one column and ss rows, containing log10 value of the CLR of e
 LR when a child (C) is alleged to be a grand-child of another individual (GP), and an offspring(A) of the alleged grandparent participated, with or without the assistant of B's other parent (M). Hp is that, C is an offspring of A's full-sibling; and Hd that, C is unrelated to GP and A. Inbreeding is not considered.
 }
 \details{
-There might be no allele sharing between GP and A, or between M and B, if so, the part in LR would be output as 0, which can be further optimized in future version.
+There might be no allele sharing between GP and A, or between M and B, if so, the related part in the LR calculation would be treated as 0, which can be further optimized in future version.
 }
 \examples{
-# Simulate 10000 group of such pedigree
-pedi <- data.frame(Person=c("GF","GM","F","A","M","C"),
+# Construct pedi data.frames for two types of pedigrees
+pedi1 <- data.frame(Person=c("GF","GM","F","A","M","C"),
 Father=c("RI","RI","GF","GF","RI","F"),
 Mother=c("RI","RI","GM","GM","RI","M"))
-Genotype <- pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-LR_1 <- LRgpgcam(A=Genotype[,7:8],C=Genotype[,11:12],GP=Genotype[,1:2],M=Genotype[,9:10],
-af=FortytwoSTR$afmatrix[[1]],rare=FortytwoSTR$rare[1])
-
-#Simulate 10000 group of false pedigrees, i.e., P and C is unrelated to GP and A
-pedi <- data.frame(Person=c("GF","GM","F","A","M","C"),
+pedi2 <- data.frame(Person=c("GF","GM","F","A","M","C"),
 Father=c("RI","RI","RI","GF","RI","F"),
 Mother=c("RI","RI","RI","GM","RI","M"))
-Genotype <- pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-LR_2 <- LRgpgcam(A=Genotype[,7:8],C=Genotype[,11:12],GP=Genotype[,1:2],M=Genotype[,9:10],
-af=FortytwoSTR$afmatrix[[1]],rare=FortytwoSTR$rare[1])
+LR_1=LR_2=data.frame(Log10CLR=rep(0,10000))
+for (i in 1:42) { 
+# Simulate 10000 group of pedigrees where the Hp is true
+  Genotype <- pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi1)
+  LR_1 <-LR_1+ LRgpgcam(A=Genotype[,7:8],C=Genotype[,11:12],GP=Genotype[,1:2],M=Genotype[,9:10],
+                        af=FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+#Simulate 10000 group of false pedigrees, i.e., P and C is unrelated to GP and A
+Genotype <- pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi2)
+  LR_2 <-LR_2+ LRgpgcam(A=Genotype[,7:8],C=Genotype[,11:12],GP=Genotype[,1:2],M=Genotype[,9:10],
+                        af=FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+}
+xmin<-floor(min(min(LR_1$Log10CLR),min(LR_2$Log10CLR)))
+xmax<-ceiling(max(max(LR_1$Log10CLR),max(LR_2$Log10CLR)))
+par(mfrow = c(1, 2))
+hist(LR_2$Log10CLR,xlab = expression(log[10]~CLR),main = "False pedigree",
+     xlim = c(xmin,xmax), col = "red")
+hist(LR_1$Log10CLR,xlab = expression(log[10]~CLR),main = "True cases",
+     xlim = c(xmin,xmax), col = "blue")  
+
+
 }

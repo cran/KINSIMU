@@ -6,7 +6,7 @@
 #' @param strpath pathway of the .csv file or the name of the data frame
 #' @param raremode mode of the calculation method of rare alleles, with a default of "ISFG", indicating the recommended method from ISFG, i.e., (X+1)/(2N+1), where X and N stood for the number of allele types detected in a survey and the sample size, respectively. Three alternative methods are given: "MAF", take the minimum allele frequency as such frequency; "1/2N", take the minimum of possible frequency a survey can achieved; and a number .
 #' @param Nind mode of sample size, with a default of "lastrow", meaning that the sample size was presented in the last row of the .csv file. An alternative method is given, i.e., input a unified sample size.
-#'
+#' @param Th The threshold for the difference in allele frequency sum at a locus with 1, to detect data error from rounding error when the frequency sum does not equal 1. Loci exceeding this threshold will be excluded from the calculation.
 #' @return list of four vectors: afmatrix, a list of allele frequency data of each locus; rare, a data.frame containing the frequency of rare allele on each locus; indicators, a data.frame containing parameters of system efficiency for each locus; panelparas, a data.frame containing system efficiency parameters for the whole panel, with the form of log10(1-paramter) to avoid the situation that the parameters being displayed as 1 because they were too close to 1
 #' @export
 #'
@@ -23,7 +23,7 @@
 #' #The data "FortytwoSTR" is generated with these codes.
 #' @importFrom utils read.csv write.csv
 #'
-EvaluatePanel<-function (type = 'csv', strpath, raremode = "ISFG", Nind = "lastrow"){
+EvaluatePanel<-function (type = 'csv', strpath, raremode = "ISFG", Nind = "lastrow",Th=0.01){
   if (type=='csv') {
     allelefreq <- read.csv(file = strpath, header = T)
   } else if (type == 'df') {
@@ -62,11 +62,28 @@ EvaluatePanel<-function (type = 'csv', strpath, raremode = "ISFG", Nind = "lastr
   if (isFALSE(all(allelefreq < 1))) {
     stop("error: there are frequencies larger than 1")
   }
-  if (isFALSE(all(apply(allelefreq, 2, sum) == 1))) {
-    warning(paste("allele frequencies of loci",
-                colnames(allelefreq[,which(apply(allelefreq, 2, sum) != 1)]),
-                "does not equal to 1, there may be some errors in the calculation results of this marker"))
+  if (isFALSE(all(abs(apply(allelefreq, 2, sum))<(1+Th)))) {
+    warning(paste("Please take note that the allele frequencies at locus ",
+                  colnames(allelefreq[,which(abs(apply(allelefreq, 2, sum)) >=(1+Th))]), 
+                  " deviate significantly from 1 (",
+                  apply(as.data.frame(allelefreq[,which(abs(apply(allelefreq, 2, sum)) >=(1+Th))]),2,sum),
+                  " with a difference threshold of ",Th,"). As a result, the marker has been excluded from the subsequent calculations.\n",
+                  sep = ""))
   }
+  if (isFALSE(all(apply(allelefreq, 2, sum) == 1))) {
+    warning(paste("Please take note that the allele frequencies at locus ",
+                colnames(allelefreq[,which(apply(allelefreq, 2, sum) != 1 & abs(apply(allelefreq, 2, sum)) <(1+Th))]), 
+                " does not equal to 1 (",
+                apply(as.data.frame(allelefreq[,which(apply(allelefreq, 2, sum) != 1 & abs(apply(allelefreq, 2, sum)) <(1+Th))]),2,sum),
+                "), there may be some errors in the calculation results of this marker.\n",
+                sep = ""))
+  }
+  locusnames<-colnames(allelefreq)
+  filter<-which(abs(apply(allelefreq, 2, sum)) <(1+Th))
+  allelefreq<-as.data.frame(allelefreq[,filter])
+  colnames(allelefreq)<-locusnames[filter]
+  nl<-ncol(allelefreq)
+  n_of_indi<-n_of_indi[filter]
   indicators <- as.data.frame(matrix(nrow = 12, ncol = nl))
   colnames(indicators) <- colnames(allelefreq)
   row.names(indicators) <- c("n_of_alleles", "Het_unadjusted",

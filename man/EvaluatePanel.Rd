@@ -4,7 +4,13 @@
 \alias{EvaluatePanel}
 \title{Evaluate a panel}
 \usage{
-EvaluatePanel(type = "csv", strpath, raremode = "ISFG", Nind = "lastrow")
+EvaluatePanel(
+  type = "csv",
+  strpath,
+  raremode = "ISFG",
+  Nind = "lastrow",
+  Th = 0.01
+)
 }
 \arguments{
 \item{type}{The type of input data, either 'csv'(a .csv containing af matrix, with the marker names listed in the first row), or 'df' (a data frame cantaining the af matrix with the marker names as column names)}
@@ -14,6 +20,8 @@ EvaluatePanel(type = "csv", strpath, raremode = "ISFG", Nind = "lastrow")
 \item{raremode}{mode of the calculation method of rare alleles, with a default of "ISFG", indicating the recommended method from ISFG, i.e., (X+1)/(2N+1), where X and N stood for the number of allele types detected in a survey and the sample size, respectively. Three alternative methods are given: "MAF", take the minimum allele frequency as such frequency; "1/2N", take the minimum of possible frequency a survey can achieved; and a number .}
 
 \item{Nind}{mode of sample size, with a default of "lastrow", meaning that the sample size was presented in the last row of the .csv file. An alternative method is given, i.e., input a unified sample size.}
+
+\item{Th}{The threshold for the difference in allele frequency sum at a locus with 1, to detect data error from rounding error when the frequency sum does not equal 1. Loci exceeding this threshold will be excluded from the calculation.}
 }
 \value{
 list of four vectors: afmatrix, a list of allele frequency data of each locus; rare, a data.frame containing the frequency of rare allele on each locus; indicators, a data.frame containing parameters of system efficiency for each locus; panelparas, a data.frame containing system efficiency parameters for the whole panel, with the form of log10(1-paramter) to avoid the situation that the parameters being displayed as 1 because they were too close to 1

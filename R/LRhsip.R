@@ -14,23 +14,32 @@
 #' @details Mutation might be found between P with A or B, if so, LR would be output as 1-phi, which can be further optimized in the future version.
 #' @export
 #' @examples
-#' # Simulate 10000 groups of A/B/P where A is full sibiling of B
-#' pedi <- data.frame(Person=c("F","M","A","B"),
-#' Father=c("RI","RI","F","F"),
-#' Mother=c("RI","RI","M","M"))
-#' Genotype=pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-#' #Calculation
-#' LR_1=LRhsip(A=Genotype[,5:6],B=Genotype[,7:8],P=Genotype[,3:4],
-#' af = FortytwoSTR$afmatrix[[1]],rare=FortytwoSTR$rare[1])
-#'
-#' # Simulate 10000 groups of A/B/P where A is half sibling of B, i.e., the true phi=0
-#' pedi <- data.frame(Person=c("M","A","B"),
-#' Father=c("RI","RI","RI"),
-#' Mother=c("RI","M","M"))
-#' Genotype=pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-#' #Calculation
-#' LR_2=LRhsip(A=Genotype[,3:4],B=Genotype[,5:6],P=Genotype[,1:2],
-#' af = FortytwoSTR$afmatrix[[1]],rare=FortytwoSTR$rare[1])
+#' # Construct pedi data.frames for two types of pedigrees
+#' pedi1 <- data.frame(Person=c("F","M","A","B"),
+#'                     Father=c("RI","RI","F","F"),
+#'                     Mother=c("RI","RI","M","M"))
+#' pedi2 <- data.frame(Person=c("M","A","B"),
+#'                     Father=c("RI","RI","RI"),
+#'                     Mother=c("RI","M","M"))
+#' LR_1=LR_2=data.frame(Log10CLR=rep(0,10000))
+#' for (i in 1:42) {
+#'   # Simulate 10000 groups of A/B/P where A is full sibiling of B
+#'   Genotype1=pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi1)
+#'   LR_1=LR_1+LRhsip(A=Genotype1[,5:6],B=Genotype1[,7:8],P=Genotype1[,3:4],
+#'                    af = FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+#'   # Simulate 10000 groups of A/B/P where A is half sibling of B, i.e., the true phi=0
+#'   Genotype2=pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi2)
+#'   LR_2=LR_2+LRhsip(A=Genotype2[,3:4],B=Genotype2[,5:6],P=Genotype2[,1:2],
+#'                    af = FortytwoSTR$afmatrix[[i]],rare=FortytwoSTR$rare[i][1,1])
+#' }
+#' # histograms of CLR distributions in the two groups
+#' xmin<-floor(min(min(LR_1$Log10CLR),min(LR_2$Log10CLR)))
+#' xmax<-ceiling(max(max(LR_1$Log10CLR),max(LR_2$Log10CLR)))
+#' par(mfrow = c(1, 2))
+#' hist(LR_2$Log10CLR,xlab = expression(log[10]~CLR),main = "False pedigree",
+#'      xlim = c(xmin,xmax), col = "red")
+#' hist(LR_1$Log10CLR,xlab = expression(log[10]~CLR),main = "True cases",
+#'      xlim = c(xmin,xmax), col = "blue")
 #'
 
 LRhsip<-function(A,B,P,af,rare=NULL,allelename=FALSE,phi=0.5){
@@ -53,28 +62,29 @@ LRhsip<-function(A,B,P,af,rare=NULL,allelename=FALSE,phi=0.5){
     pb<-af[as.character(A[,2]),]
     pc<-af[as.character(B[,1]),]
     pd<-af[as.character(B[,2]),]
-    if (any(is.na(pa)) || any(is.na(pb)) || any(is.na(pc)) || any(is.na(pd))) {
-      if (is.null(rare)) {
-        stop("please input frequency data of rare alleles")
-      }
-      pa[is.na(pa)]<-rare
-      pb[is.na(pb)]<-rare
-      pc[is.na(pc)]<-rare
-      pd[is.na(pd)]<-rare
-    }
-    pa<-as.numeric(pa)
-    pb<-as.numeric(pb)
-    pc<-as.numeric(pc)
-    pd<-as.numeric(pd)
   } else {
     pa<-af[A[,1],]
     pb<-af[A[,2],]
     pc<-af[B[,1],]
     pd<-af[B[,2],]
   }
+  if (any(is.na(pa)) || any(is.na(pb)) || any(is.na(pc)) || any(is.na(pd))) {
+    if (is.null(rare)) {
+      stop("please input frequency data of rare alleles")
+    }
+    pa[is.na(pa)]<-rare
+    pb[is.na(pb)]<-rare
+    pc[is.na(pc)]<-rare
+    pd[is.na(pd)]<-rare
+  }
+  pa<-as.numeric(pa)
+  pb<-as.numeric(pb)
+  pc<-as.numeric(pc)
+  pd<-as.numeric(pd)
 
   LR1<-(pa*dmb*(ac*dmd+ad*dmc)+pb*dma*(bc*dmd+bd*dmc))/((dmc*pd+dmd*pc)*(dma*pb+dmb*pa))
   LR1[is.na(LR1)]=0
+  LR1[is.infinite(LR1)]=0
   results=data.frame(Log10CLR=log10(1-phi+phi*LR1))
   return(results)
 

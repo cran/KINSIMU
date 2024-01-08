@@ -45,24 +45,49 @@ Calculating LR in cases where 3 participants being available, a child, his/her b
 If any one of TP or AR cannot provide any of the C's alleles through integer steps, \code{muAtoC} would be output when calculating PI, and under other situations, the case with minimum mutation steps, (AR to C)+(TP to C) under Hp and (TP to C) under Hd, would be considered. Much more is required for further discussion in PI calculation involving mutations.
 }
 \examples{
-# PI calculation in standard trio paternity testing when the Hp is true
-pedi <- data.frame(Person=c("F","M","C"),Father=c("RI","RI","F"),Mother=c("RI","RI","M"))
-Genotype<-pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-PI_1<-trioPI(AR=Genotype[,1:2],TP=Genotype[,3:4],C=Genotype[,5:6],af=FortytwoSTR$afmatrix[[1]],
-rare=FortytwoSTR$rare[1])
+ # Three types of pedigrees are simulated: pedi1: father-mother-child; 
+ # pedi2: random male-mother-child; and pedi3: uncle-mother-child
+ pedi1 <- data.frame(Person=c("F","M","C"),Father=c("RI","RI","F"),Mother=c("RI","RI","M"))
+ pedi2 <- data.frame(Person=c("F","M","C"),Father=c("RI","RI","RI"),Mother=c("RI","RI","M"))
+ pedi3 <- data.frame(Person=c("GF","GM","AR","F","M","C"),
+ Father=c("RI","RI","GF","GF","RI","F"),
+ Mother=c("RI","RI","GM","GM","RI","M"))
+ # Two types of LRs are calculated: PI_1 and PI_2: Paternity index in trio cases; 
+ # AI_1 and AI_2: Avuncular index in trio cases.
+ PI_1=PI_2=AI_1=AI_2=data.frame(Log10CLR=rep(0,10000))
+ # Simulation are carried out based on the frequency data of the 42 STRs in FortytwoSTR dataset
+ # Setting sample size as 10,000
+ for (i in 1:42) {
+   Genotype1<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi1)
+   PI_1<-PI_1+trioPI(AR=Genotype1[,1:2],TP=Genotype1[,3:4],
+                C=Genotype1[,5:6],af=FortytwoSTR$afmatrix[[i]],
+                rare=FortytwoSTR$rare[i])
+   Genotype2<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi2)
+   PI_2<-PI_2+trioPI(AR=Genotype2[,1:2],TP=Genotype2[,3:4],
+                C=Genotype2[,5:6],af=FortytwoSTR$afmatrix[[i]],
+                rare=FortytwoSTR$rare[i])
+   AI_2<-AI_2+trioPI(AR=Genotype2[,1:2],TP=Genotype2[,3:4],
+                C=Genotype2[,5:6],af=FortytwoSTR$afmatrix[[i]],
+                rare=FortytwoSTR$rare[i],kappa1=0.5)             
+   Genotype3<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi3)
+   AI_1<-AI_1+trioPI(AR=Genotype3[,5:6],TP=Genotype3[,9:10],
+                C=Genotype3[,11:12],af=FortytwoSTR$afmatrix[[i]],
+                rare=FortytwoSTR$rare[i],kappa1=0.5)
+ }
+ #histogram of the final results
+ xmin1<-floor(min(min(PI_1$Log10CLR),min(PI_2$Log10CLR)))
+ xmax1<-ceiling(max(max(PI_1$Log10CLR),max(PI_2$Log10CLR)))
+ xmin2<-floor(min(min(AI_1$Log10CLR),min(AI_2$Log10CLR)))
+ xmax2<-ceiling(max(max(AI_1$Log10CLR),max(AI_2$Log10CLR)))
+ par(mfrow = c(2, 2))
+ hist(PI_1$Log10CLR,xlab = expression(log[10]~CPI),main = "True parentage cases",
+      xlim = c(xmin1,xmax1), col = "blue")
+ hist(AI_1$Log10CLR,xlab = expression(log[10]~CAI),main = "True avuncular cases",
+      xlim = c(xmin2,xmax2), col = "blue")  
+ hist(PI_2$Log10CLR,xlab = expression(log[10]~CPI),main = "False pedigree in parentage cases",
+      xlim = c(xmin1,xmax1), col = "red")
+ hist(AI_2$Log10CLR,xlab = expression(log[10]~CAI),main = "False pedigree in avuncular cases",
+      xlim = c(xmin2,xmax2), col = "red")
 
-# PI calculation in standard trio paternity testing when the Hd is true
-pedi <- data.frame(Person=c("F","M","C"),Father=c("RI","RI","RI"),Mother=c("RI","RI","M"))
-Genotype<-pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-PI_2<-trioPI(AR=Genotype[,1:2],TP=Genotype[,3:4],C=Genotype[,5:6],af=FortytwoSTR$afmatrix[[1]],
-rare=FortytwoSTR$rare[1])
-
-# AI with the participant of the child's mother
-pedi <- data.frame(Person=c("GF","GM","AR","F","M","C"),
-Father=c("RI","RI","GF","GF","RI","F"),
-Mother=c("RI","RI","GM","GM","RI","M"))
-Genotype<-pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
-PI_2<-trioPI(AR=Genotype[,5:6],TP=Genotype[,9:10],C=Genotype[,11:12],af=FortytwoSTR$afmatrix[[1]],
-rare=FortytwoSTR$rare[1],kappa1=0.5)
 
 }

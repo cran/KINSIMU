@@ -4,7 +4,7 @@
 \alias{IICAL}
 \title{Incest index}
 \usage{
-IICAL(Parent, Child, af, rare, phi = 0.25)
+IICAL(Parent, Child, af, rare = NULL, allelename = FALSE, phi = 0.25)
 }
 \arguments{
 \item{Parent}{Genotypes of individual A of each case, which should be data.frame with 2 columns and ss rows, where ss stand for sample size}
@@ -14,6 +14,8 @@ IICAL(Parent, Child, af, rare, phi = 0.25)
 \item{af}{name of allele frequency matrix, a data.frame of 1 column with the allele name being row names}
 
 \item{rare}{frequency of rare allele}
+
+\item{allelename}{if TRUE, the input genotype data would be regarded as allelenames, otherwise, the position in the af matrix}
 
 \item{phi}{kinship coefficent between the parents under Hp (that under Hd euquals to 0),with a defualt of 0.25, i.e., father-daughter incest or full-sibling incest}
 }
@@ -28,14 +30,25 @@ The premise of using this function should be the confirmation of the parent-chil
 }
 \examples{
 # Simulate 10,000 mother-child pairs with father-daughter incest with pedisimu() function
-# based on the first STR in "FortytwoSTR" data.
+# based on the 42 STRs in "FortytwoSTR" data.
 pedi<-data.frame(Person=c("F","M","C"),Father=c("RI","F","F"),Mother=c("RI","RI","M"))
-Genotype<-pedisimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,pedi = pedi)
+II_1=II_2=data.frame(Ngs=rep(0,10000),IIphi=rep(0,10000))
+for (i in 1:42) {
+Genotype1<-pedisimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,pedi = pedi)
 # Calculate II for each case.
-II_1<-IICAL(Parent = Genotype[,3:4],Child = Genotype[,5:6],af=FortytwoSTR$afmatrix[[1]],
-rare=FortytwoSTR$rare[1],phi=0.25)
+II_1<-II_1+IICAL(Parent = Genotype1[,3:4],Child = Genotype1[,5:6],af=FortytwoSTR$afmatrix[[i]],
+rare=FortytwoSTR$rare[i][1,1],phi=0.25)
 #Simulate 10,000 non-inbred mother-child pairs
-Genotype<-pairsimu(af = FortytwoSTR$afmatrix[[1]],ss = 10000,delta = c(0,1,0),allelename = FALSE)
-II_2<-IICAL(Parent = Genotype[,1:2],Child = Genotype[,3:4],af=FortytwoSTR$afmatrix[[1]],
-rare=FortytwoSTR$rare[1],phi=0.25)
+Genotype2<-pairsimu(af = FortytwoSTR$afmatrix[[i]],ss = 10000,delta = c(0,1,0),allelename = FALSE)
+II_2<-II_2+IICAL(Parent = Genotype2[,1:2],Child = Genotype2[,3:4],af=FortytwoSTR$afmatrix[[i]],
+rare=FortytwoSTR$rare[i][1,1],phi=0.25)
+}
+# histograms of CII distributions in the two groups
+xmin<-floor(min(min(II_1$IIphi),min(II_2$IIphi)))
+xmax<-ceiling(max(max(II_1$IIphi),max(II_2$IIphi)))
+par(mfrow = c(1,2))
+hist(II_2$IIphi,xlab = expression(log[10]~CII),main = "Non-inbreed cases",
+xlim = c(xmin,xmax), col = "red")
+hist(II_1$IIphi,xlab = expression(log[10]~CII),main = "Inbreed cases",
+xlim = c(xmin,xmax), col = "blue")
 }
