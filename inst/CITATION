@@ -1,0 +1,14 @@
+## R package reference generated from DESCRIPTION metadata
+citation(auto = meta)
+
+## KINSIMU article
+bibentry(,
+         bibtype = 'Article',
+         title = 'An approach to unified formulae for likelihood ratio calculation in pairwise kinship analysis',
+         author = c(person("Guanju","Ma"),
+                    person("Qian","Wang"),
+                    person("Bin","Cong"),
+                    person("Shujin","Li")),
+         year = '2024', volumn = '15', page = '1226228',
+         journal = 'Frontiers in Genetics',
+         doi = '10.3389/fgene.2024.1226228')

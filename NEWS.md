@@ -5,3 +5,6 @@
 * Fixed several bugs in IICAL(), trioPI() and LRgpgcam() functions;
 * Added a pdf file containing the instruction of functions in this package as a vignette file;
 * Updated the examples to make them more visible.
+
+# KIMSIMU 0.1.2-2
+* Added a new citation information
